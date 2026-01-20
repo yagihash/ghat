@@ -1,0 +1,55 @@
+package input
+
+import (
+	"os"
+	"strings"
+
+	"github.com/kelseyhightower/envconfig"
+)
+
+type Config struct {
+	AppID        string       `envconfig:"APP_ID"`
+	Owner        string       `envconfig:"OWNER"`
+	Repositories Repositories `envconfig:"REPOSITORIES"`
+	BaseURL      string       `envconfig:"BASE_URL" default:"https://api.github.com"`
+
+	ProjectID string `envconfig:"KMS_PROJECT_ID"`
+	KeyRingID string `envconfig:"KMS_KEYRING_ID"`
+	KeyID     string `envconfig:"KMS_KEY_ID"`
+	Location  string `envconfig:"KMS_LOCATION"`
+}
+
+func Load() (*Config, error) {
+	var c Config
+	if err := envconfig.Process("INPUT", &c); err != nil {
+		return nil, err
+	}
+
+	if c.Owner == "" {
+		c.Owner = os.Getenv("GITHUB_REPOSITORY_OWNER")
+	}
+
+	return &c, nil
+}
+
+type Repositories []string
+
+func (r *Repositories) Decode(value string) error {
+	if value == "" {
+		return nil
+	}
+
+	res := make(Repositories, 0)
+	normalized := strings.ReplaceAll(value, "\n", ",")
+	repos := strings.Split(normalized, ",")
+	for _, repo := range repos {
+		trimmed := strings.TrimSpace(repo)
+		if trimmed != "" {
+			res = append(res, trimmed)
+		}
+	}
+
+	*r = res
+
+	return nil
+}

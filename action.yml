@@ -1,0 +1,38 @@
+name: "Create GitHub App Token"
+description: "Create GitHub App Token based on Google Cloud KMSs"
+inputs:
+  app_id:
+    description: "GitHub App ID"
+    required: true
+  owner:
+    description: "The owner of the GitHub App installation (defaults to current repository owner)"
+    required: false
+  kms_project_id:
+    description: "Google Cloud Project ID"
+    required: true
+  kms_keyring_id:
+    description: "KMS Keyring ID"
+    required: true
+  kms_key_id:
+    description: "KMS key ID"
+    required: true
+  kms_location:
+    description: "KMS Keyring region"
+    required: true
+
+outputs:
+  token:
+    description: "GitHub App Token"
+
+runs:
+  using: "docker"
+  image: "docker://ghcr.io/yagihash/ghat:main"
+  args:
+    - ${{ inputs.app_id }}
+    - ${{ inputs.owner }}
+    - ${{ inputs.kms_project_id }}
+    - ${{ inputs.kms_keyring_id }}
+    - ${{ inputs.kms_key_id }}
+    - ${{ inputs.kms_location }}
+  entrypoint: "/ghat"
+  post-entrypoint: "/post"
