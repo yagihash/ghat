@@ -49,6 +49,7 @@ jobs:
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
       - name: Run action
+        id: token
         uses: ./
         with:
           app_id: ${{ secrets.BOT_GITHUB_APP_ID }}
@@ -56,3 +57,9 @@ jobs:
           kms_keyring_id: ${{ secrets.KMS_KEYRING_ID }}
           kms_location: ${{ vars.KMS_LOCATION }}
           kms_project_id: ${{ vars.KMS_PROJECT_ID }}
+
+      - name: Test token
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          gh auth status
