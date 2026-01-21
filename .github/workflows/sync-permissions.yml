@@ -1,0 +1,25 @@
+name: Sync GitHub App Permissions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-slim
+    environment: main
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
+      - name: Checkout octokit/openapi
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          repository: "octokit/openapi"
