@@ -1,6 +1,9 @@
 name: Sync GitHub App Permissions
 
 on:
+  push:
+    paths:
+      - ".github/workflows/sync-permissions.yml"
   workflow_dispatch:
 
 jobs:
