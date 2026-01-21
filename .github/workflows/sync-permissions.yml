@@ -29,7 +29,52 @@ jobs:
 
       - name: Update action.yml
         run: |
-          sed -n '1,/requiped: false/p' action.yml > new_action.yml
-          jq -r '.components.schemas["app-permissions"].properties | to_entries | .[] | "  permission-\(.key | gsub("_"; "-")):\n    description: \"\(.value.description) (\(.value.enum | join("/")))\"\n    required: false"' ./openapi/generated/api.github.com.json >> new_action.yml
-          sed -n '/outputs:/,$p' action.yml >> new_action.yml
-          mv new_action.yml action.yml
+          # --- 1. inputs セクションの更新 ---
+          # ファイル冒頭から "repositories:" ブロックの末尾（required: false）までを抽出
+          sed -n '1,/repositories:/p; /repositories:/,/required: false/p' action.yml | sed '$d' > action.yml.new
+          
+          # inputs 用のパーミッション定義を追記
+          jq -r '.components.schemas["app-permissions"].properties | to_entries | .[] | "  permission-\(.key | gsub("_"; "-")):\n    description: \"\(.value.description) (\(.value.enum | join("/")))\"\n    required: false"' ./openapi/generated/api.github.com.json >> action.yml.new
+          
+          # --- 2. outputs と runs.args 開始位置までを抽出 ---
+          echo "" >> action.yml.new
+          sed -n '/outputs:/,/args:/p' action.yml >> action.yml.new
+          
+          # --- 3. runs.args セクションの更新 ---
+          # 固定引数（app_id から repositories まで）を一括抽出
+          sed -n '/- \${{ inputs.app_id }}/,/- \${{ inputs.repositories }}/p' action.yml >> action.yml.new
+          
+          # jqで全パーミッションを args に動的追加
+          jq -r '.components.schemas["app-permissions"].properties | keys_unsorted[] | "    - \${{ inputs.permission-\(. | gsub("_"; "-")) }}"' ./openapi/generated/api.github.com.json >> action.yml.new
+          
+          # --- 4. 残りの entrypoint 以降を復元 ---
+          sed -n '/entrypoint:/,$p' action.yml >> action.yml.new
+          
+          mv action.yml.new action.yml
+
+      - name: Create Pull Request with GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Git のセットアップに GitHub CLI を利用
+          gh auth setup-git
+          
+          BRANCH_NAME="sync-permissions-$(date +%Y%m%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # 変更がある場合のみ PR を作成
+          if [[ -n $(git status --porcelain action.yml) ]]; then
+            git checkout -b "$BRANCH_NAME"
+            git add action.yml
+            git commit -m "chore: sync GitHub App permissions"
+            git push origin "$BRANCH_NAME" --force
+            
+            gh pr create \
+              --title "🤖 Sync GitHub App Permissions" \
+              --body "This PR updates \`action.yml\` inputs and args based on the latest GitHub App permissions from octokit/openapi." \
+              --base main \
+              --head "$BRANCH_NAME" || echo "PR already exists or was updated."
+          else
+            echo "No changes detected in action.yml"
+          fi
