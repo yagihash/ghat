@@ -21,7 +21,7 @@ inputs:
     required: true
   repositories:
     description: "Comma or newline-separated list of the scoped repos"
-    requiped: false
+    required: false
 
 outputs:
   token:
