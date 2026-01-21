@@ -34,7 +34,7 @@ jobs:
           sed -n '1,/repositories:/p; /repositories:/,/required: false/p' action.yml | sed '$d' > action.yml.new
           
           # inputs 用のパーミッション定義を追記
-          jq -r '.components.schemas["app-permissions"].properties | to_entries | .[] | "  permission-\(.key | gsub("_"; "-")):\n    description: \"\(.value.description) (\(.value.enum | join("/")))\"\n    required: false"' ./openapi/generated/api.github.com.json >> action.yml.new
+           jq -r '.components.schemas["app-permissions"].properties | keys_unsorted[] | "    - \${{ inputs.permission-\(. | gsub("_"; "-")) }}"' ./openapi/generated/api.github.com.json >> action.yml.new
           
           # --- 2. outputs と runs.args 開始位置までを抽出 ---
           echo "" >> action.yml.new
