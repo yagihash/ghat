@@ -37,5 +37,6 @@ runs:
     - ${{ inputs.kms_keyring_id }}
     - ${{ inputs.kms_key_id }}
     - ${{ inputs.kms_location }}
+    - ${{ inputs.repositories }}
   entrypoint: "/ghat"
   post-entrypoint: "/post"
