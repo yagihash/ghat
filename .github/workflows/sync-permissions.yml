@@ -26,3 +26,9 @@ jobs:
         with:
           persist-credentials: false
           repository: "octokit/openapi"
+          path: "./openapi"
+
+      - name: Make inputs fragment from OpenAPI schema
+        run: |
+          jq -r '.components.schemas["app-permissions"].properties | to_entries | .[] | "  - permission-\(.key | gsub("_"; "-")):\n    description: \"\(.value.description) (\(.value.enum | join("/")))\"\n    required: false"' ./openapi/generated/api.github.com.json
+
