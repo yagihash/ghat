@@ -27,7 +27,9 @@ jobs:
           repository: "octokit/openapi"
           path: "./openapi"
 
-      - name: Make inputs fragment from OpenAPI schema
+      - name: Update action.yml
         run: |
-          jq -r '.components.schemas["app-permissions"].properties | to_entries | .[] | "  - permission-\(.key | gsub("_"; "-")):\n    description: \"\(.value.description) (\(.value.enum | join("/")))\"\n    required: false"' ./openapi/generated/api.github.com.json
-
+          sed -n '1,/requied: false/p' action.yml > new_action.yml
+          jq -r '.components.schemas["app-permissions"].properties | to_entries | .[] | "  permission-\(.key | gsub("_"; "-")):\n    description: \"\(.value.description) (\(.value.enum | join("/")))\"\n    required: false"' ./openapi/generated/api.github.com.json >> new_action.yml
+          sed -n '/outputs:/,$p' action.yml >> new_action.yml
+          mv new_action.yml action.yml
