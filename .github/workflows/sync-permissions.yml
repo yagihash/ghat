@@ -9,7 +9,6 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-slim
-    environment: main
     timeout-minutes: 15
     permissions:
       contents: write
