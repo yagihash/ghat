@@ -1,0 +1,29 @@
+name: "Run ghalint"
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  ghalint:
+    runs-on: ubuntu-slim
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+
+      - name: Install ghalint
+        run: |
+          go install github.com/suzuki-shunsuke/ghalint/cmd/ghalint@latest
+
+      - name: Run ghalint
+        run: |
+          ghalint run
