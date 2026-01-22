@@ -30,6 +30,14 @@ func Load() (*Config, error) {
 		c.Owner = os.Getenv("GITHUB_REPOSITORY_OWNER")
 	}
 
+	if len(c.Permissions) > 0 {
+		lowered := make(map[string]string, len(c.Permissions))
+		for k, v := range c.Permissions {
+			lowered[strings.ToLower(k)] = v
+		}
+		c.Permissions = lowered
+	}
+
 	return &c, nil
 }
 
