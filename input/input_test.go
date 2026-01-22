@@ -1,12 +1,25 @@
 package input
 
 import (
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 )
 
 func TestLoad(t *testing.T) {
+	os.Setenv("INPUT_APP_ID", "12345")
+	os.Setenv("INPUT_OWNER", "owner")
+	os.Setenv("INPUT_REPOSITORIES", "owner/repo1,owner/repo2")
+	os.Setenv("INPUT_PERMISSION_CONTENTS", "write")
+	os.Setenv("INPUT_PERMISSION_ISSUES", "read")
+	os.Setenv("INPUT_BASE_URL", "https://api.github.com")
+	os.Setenv("INPUT_KMS_PROJECT_ID", "project-id")
+	os.Setenv("INPUT_KMS_KEYRING_ID", "keyring-id")
+	os.Setenv("INPUT_KMS_KEY_ID", "key-id")
+	os.Setenv("INPUT_KMS_KEY_VERSION", "1")
+	os.Setenv("INPUT_KMS_LOCATION", "us-central1")
+
 	_, err := Load()
 	if err != nil {
 		t.Fatal(err)
