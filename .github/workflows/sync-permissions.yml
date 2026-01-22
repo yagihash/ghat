@@ -13,53 +13,31 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      id-token: write
 
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
 
-      - name: Checkout octokit/openapi
-        uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-          repository: "octokit/openapi"
-          path: "./openapi"
+      - name: Get OpenAPI schema file
+        run: |
+          curl https://raw.githubusercontent.com/octokit/openapi/refs/heads/main/generated/api.github.com.json -o "$RUNNER_TEMP/api.github.com.json"
 
       - name: Update action.yml
         run: |
-          # --- 1. inputs セクションの更新 ---
-          # ファイル冒頭から "repositories:" ブロックの末尾（required: false）までを抽出
-          sed -n '1,/repositories:/p; /repositories:/,/required: false/p' action.yml | sed '$d' > action.yml.new
-          
-          # inputs 用のパーミッション定義を追記
-           jq -r '.components.schemas["app-permissions"].properties | keys_unsorted[] | "    - \${{ inputs.permission-\(. | gsub("_"; "-")) }}"' ./openapi/generated/api.github.com.json >> action.yml.new
-          
-          # --- 2. outputs と runs.args 開始位置までを抽出 ---
-          echo "" >> action.yml.new
-          sed -n '/outputs:/,/args:/p' action.yml >> action.yml.new
-          
-          # --- 3. runs.args セクションの更新 ---
-          # 固定引数（app_id から repositories まで）を一括抽出
-          sed -n '/- \${{ inputs.app_id }}/,/- \${{ inputs.repositories }}/p' action.yml >> action.yml.new
-          
-          # jqで全パーミッションを args に動的追加
-          jq -r '.components.schemas["app-permissions"].properties | keys_unsorted[] | "    - \${{ inputs.permission-\(. | gsub("_"; "-")) }}"' ./openapi/generated/api.github.com.json >> action.yml.new
-          
-          # --- 4. 残りの entrypoint 以降を復元 ---
-          sed -n '/entrypoint:/,$p' action.yml >> action.yml.new
-          
-          mv action.yml.new action.yml
+          ./scripts/update-permissions.sh "$RUNNER_TEMP/api.github.com.json"
+
+      - name: Setup git
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh auth setup-git
 
       - name: Create Pull Request with GitHub CLI
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Git のセットアップに GitHub CLI を利用
-          gh auth setup-git
-          
-          BRANCH_NAME="sync-permissions-$(date +%Y%m%d)"
+        run: |          
+          BRANCH_NAME="feature/sync-permissions-$(date +%Y%m%d)"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           
