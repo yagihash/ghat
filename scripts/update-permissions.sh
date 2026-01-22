@@ -7,8 +7,8 @@ if [ "$#" -ne 1 ]; then
 fi
 
 INPUT_JSON="$1"
-ACTION_YML="$RUNNER_TEMP/action.yml"
-NEW_YML="$RUNNER_TEMP/action.yml.new"
+ACTION_YML="action.yml"
+NEW_YML="action.yml.new"
 
 if [ ! -f "$INPUT_JSON" ]; then
     echo "Error: File $INPUT_JSON not found."
@@ -17,12 +17,12 @@ fi
 
 jq -r '.components.schemas["app-permissions"].properties | to_entries | .[] |
   "  permission-" + (.key | gsub("_"; "-")) + ":\n    description: \"" + .value.description + " (" + (.value.enum | join("/")) + ")\"\n    required: false"' \
-  "$INPUT_JSON" > "$RUNNER_TEMP/inputs_fragment.txt"
+  "$INPUT_JSON" > inputs_fragment.txt
 
 # args用
 jq -r '.components.schemas["app-permissions"].properties | keys_unsorted[] |
   "    - ${{ inputs.permission-" + (. | gsub("_"; "-")) + " }}"' \
-  "$INPUT_JSON" > "$RUNNER_TEMP/args_fragment.txt"
+  "$INPUT_JSON" > args_fragment.txt
 
 # 2. awkでマージ
 awk '
