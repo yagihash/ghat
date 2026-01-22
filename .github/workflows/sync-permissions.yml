@@ -1,0 +1,59 @@
+name: Sync GitHub App Permissions
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/sync-permissions.yml"
+      - "scripts/update-permissions.sh"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-slim
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
+      - name: Get OpenAPI schema file
+        run: |
+          curl https://raw.githubusercontent.com/octokit/openapi/refs/heads/main/generated/api.github.com.json -o "$RUNNER_TEMP/api.github.com.json"
+
+      - name: Update action.yml
+        run: |
+          ./scripts/update-permissions.sh "$RUNNER_TEMP/api.github.com.json"
+
+      - name: Setup git
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh auth setup-git
+
+      - name: Create Pull Request with GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |          
+          BRANCH_NAME="feature/sync-permissions-$(date +%Y%m%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # 変更がある場合のみ PR を作成
+          if [[ -n $(git status --porcelain action.yml) ]]; then
+            git checkout -b "$BRANCH_NAME"
+            git add action.yml
+            git commit -m "chore: sync GitHub App permissions"
+            git push origin "$BRANCH_NAME" --force
+            
+            gh pr create \
+              --title "🤖 Sync GitHub App Permissions" \
+              --body "This PR updates \`action.yml\` inputs and args based on the latest GitHub App permissions from octokit/openapi." \
+              --base main \
+              --head "$BRANCH_NAME" || echo "PR already exists or was updated."
+          else
+            echo "No changes detected in action.yml"
+          fi

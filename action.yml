@@ -19,6 +19,9 @@ inputs:
   kms_location:
     description: "KMS Keyring region"
     required: true
+  repositories:
+    description: "Comma or newline-separated list of the scoped repos"
+    required: false
 
 outputs:
   token:
@@ -34,5 +37,6 @@ runs:
     - ${{ inputs.kms_keyring_id }}
     - ${{ inputs.kms_key_id }}
     - ${{ inputs.kms_location }}
+    - ${{ inputs.repositories }}
   entrypoint: "/ghat"
   post-entrypoint: "/post"
