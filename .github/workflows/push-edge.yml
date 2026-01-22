@@ -62,6 +62,10 @@ jobs:
           kms_keyring_id: ${{ secrets.KMS_KEYRING_ID }}
           kms_location: ${{ vars.KMS_LOCATION }}
           kms_project_id: ${{ vars.KMS_PROJECT_ID }}
+          repositories: |
+            yagihash/ghat
+          permission_contents: read
+          permission_pull_requests: read
 
       - name: Test token
         env:

@@ -103,7 +103,7 @@ func main() {
 		return
 	}
 
-	accessToken, err := c.GetInstallationAccessToken(installation.ID, map[string]string{}, args.Repositories)
+	accessToken, err := c.GetInstallationAccessToken(installation.ID, args.Permissions, args.Repositories)
 	if err != nil {
 		actions.LogError("failed to get access token: " + err.Error())
 		return
