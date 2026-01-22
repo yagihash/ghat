@@ -24,5 +24,5 @@ awk '
   }
 ' "$ACTION_YML" > "$NEW_YML"
 
-mv "$NEW_YML" "$ACTION_YML"
-rm inputs_fragment.txt
+cat -s "$NEW_YML" > "$ACTION_YML"
+rm "$NEW_YML" inputs_fragment.txt
