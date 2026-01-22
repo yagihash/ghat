@@ -1,24 +1,37 @@
 name: Sync GitHub App Permissions
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/sync-permissions.yml"
-      - "scripts/update-permissions.sh"
   workflow_dispatch:
 
 jobs:
   sync:
     runs-on: ubuntu-slim
+    environment: main
     timeout-minutes: 15
     permissions:
       contents: write
       pull-requests: write
+      id-token: write
 
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
+
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - name: Run action
+        id: token
+        uses: ./
+        with:
+          app_id: ${{ secrets.BOT_GITHUB_APP_ID }}
+          kms_key_id: ${{ secrets.KMS_KEY_ID }}
+          kms_keyring_id: ${{ secrets.KMS_KEYRING_ID }}
+          kms_location: ${{ vars.KMS_LOCATION }}
+          kms_project_id: ${{ vars.KMS_PROJECT_ID }}
 
       - name: Get OpenAPI schema file
         run: |
@@ -30,13 +43,13 @@ jobs:
 
       - name: Setup git
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.token.outputs.token }}
         run: |
           gh auth setup-git
 
       - name: Create Pull Request with GitHub CLI
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.token.outputs.token }}
         run: |          
           BRANCH_NAME="feature/sync-permissions-$(date +%Y%m%d)"
           git config user.name "github-actions[bot]"
