@@ -23,7 +23,7 @@ func main() {
 		return
 	}
 
-	signer, err := kms.NewSigner(ctx, args.ProjectID, args.Location, args.KeyRingID, args.KeyID, "1")
+	signer, err := kms.NewSigner(ctx, args.ProjectID, args.Location, args.KeyRingID, args.KeyID, args.KeyVersion)
 	if err != nil {
 		actions.LogError("failed to create signer: " + err.Error())
 		return

@@ -8,16 +8,17 @@ import (
 )
 
 type Config struct {
-	AppID        string            `envconfig:"APP_ID"`
+	AppID        string            `envconfig:"APP_ID" required:"true"`
 	Owner        string            `envconfig:"OWNER"`
 	Repositories Repositories      `envconfig:"REPOSITORIES"`
 	Permissions  map[string]string `envconfig:"PERMISSION"`
 	BaseURL      string            `envconfig:"BASE_URL" default:"https://api.github.com"`
 
-	ProjectID string `envconfig:"KMS_PROJECT_ID"`
-	KeyRingID string `envconfig:"KMS_KEYRING_ID"`
-	KeyID     string `envconfig:"KMS_KEY_ID"`
-	Location  string `envconfig:"KMS_LOCATION"`
+	ProjectID  string `envconfig:"KMS_PROJECT_ID" required:"true"`
+	KeyRingID  string `envconfig:"KMS_KEYRING_ID" required:"true"`
+	KeyID      string `envconfig:"KMS_KEY_ID" required:"true"`
+	KeyVersion string `envconfig:"KMS_KEY_VERSION" default:"1"`
+	Location   string `envconfig:"KMS_LOCATION" required:"true"`
 }
 
 func Load() (*Config, error) {
