@@ -22,7 +22,6 @@ inputs:
   repositories:
     description: "Comma or newline-separated list of the scoped repos"
     required: false
-
   permission_actions:
     description: "The level of permission to grant the access token for GitHub Actions workflows, workflow runs, and artifacts. (read/write)"
     required: false
