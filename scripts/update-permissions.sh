@@ -19,13 +19,10 @@ awk '
 
   /repositories:/ { in_repos = 1 }
   in_repos && /required: false/ {
-    printf "\n"
     system("cat inputs_fragment.txt")
     in_repos = 0
   }
 ' "$ACTION_YML" > "$NEW_YML"
 
-cat -s "$NEW_YML" > "$ACTION_YML"
-rm "$NEW_YML" inputs_fragment.txt
-
-echo "Successfully synchronized $ACTION_YML"
+mv "$NEW_YML" "$ACTION_YML"
+rm inputs_fragment.txt
