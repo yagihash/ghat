@@ -1,9 +1,10 @@
 name: Sync GitHub App Permissions
 
 on:
-  push:
+  pull_request:
     paths:
       - ".github/workflows/sync-permissions.yml"
+      - "scripts/update-permissions.sh"
   workflow_dispatch:
 
 jobs:
