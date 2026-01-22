@@ -22,6 +22,168 @@ inputs:
   repositories:
     description: "Comma or newline-separated list of the scoped repos"
     required: false
+  permission-actions:
+    description: "The level of permission to grant the access token for GitHub Actions workflows, workflow runs, and artifacts. (read/write)"
+    required: false
+  permission-administration:
+    description: "The level of permission to grant the access token for repository creation, deletion, settings, teams, and collaborators creation. (read/write)"
+    required: false
+  permission-artifact-metadata:
+    description: "The level of permission to grant the access token to create and retrieve build artifact metadata records. (read/write)"
+    required: false
+  permission-attestations:
+    description: "The level of permission to create and retrieve the access token for repository attestations. (read/write)"
+    required: false
+  permission-checks:
+    description: "The level of permission to grant the access token for checks on code. (read/write)"
+    required: false
+  permission-codespaces:
+    description: "The level of permission to grant the access token to create, edit, delete, and list Codespaces. (read/write)"
+    required: false
+  permission-contents:
+    description: "The level of permission to grant the access token for repository contents, commits, branches, downloads, releases, and merges. (read/write)"
+    required: false
+  permission-dependabot-secrets:
+    description: "The level of permission to grant the access token to manage Dependabot secrets. (read/write)"
+    required: false
+  permission-deployments:
+    description: "The level of permission to grant the access token for deployments and deployment statuses. (read/write)"
+    required: false
+  permission-discussions:
+    description: "The level of permission to grant the access token for discussions and related comments and labels. (read/write)"
+    required: false
+  permission-environments:
+    description: "The level of permission to grant the access token for managing repository environments. (read/write)"
+    required: false
+  permission-issues:
+    description: "The level of permission to grant the access token for issues and related comments, assignees, labels, and milestones. (read/write)"
+    required: false
+  permission-merge-queues:
+    description: "The level of permission to grant the access token to manage the merge queues for a repository. (read/write)"
+    required: false
+  permission-metadata:
+    description: "The level of permission to grant the access token to search repositories, list collaborators, and access repository metadata. (read/write)"
+    required: false
+  permission-packages:
+    description: "The level of permission to grant the access token for packages published to GitHub Packages. (read/write)"
+    required: false
+  permission-pages:
+    description: "The level of permission to grant the access token to retrieve Pages statuses, configuration, and builds, as well as create new builds. (read/write)"
+    required: false
+  permission-pull-requests:
+    description: "The level of permission to grant the access token for pull requests and related comments, assignees, labels, milestones, and merges. (read/write)"
+    required: false
+  permission-repository-custom-properties:
+    description: "The level of permission to grant the access token to view and edit custom properties for a repository, when allowed by the property. (read/write)"
+    required: false
+  permission-repository-hooks:
+    description: "The level of permission to grant the access token to manage the post-receive hooks for a repository. (read/write)"
+    required: false
+  permission-repository-projects:
+    description: "The level of permission to grant the access token to manage repository projects, columns, and cards. (read/write/admin)"
+    required: false
+  permission-secret-scanning-alerts:
+    description: "The level of permission to grant the access token to view and manage secret scanning alerts. (read/write)"
+    required: false
+  permission-secrets:
+    description: "The level of permission to grant the access token to manage repository secrets. (read/write)"
+    required: false
+  permission-security-events:
+    description: "The level of permission to grant the access token to view and manage security events like code scanning alerts. (read/write)"
+    required: false
+  permission-single-file:
+    description: "The level of permission to grant the access token to manage just a single file. (read/write)"
+    required: false
+  permission-statuses:
+    description: "The level of permission to grant the access token for commit statuses. (read/write)"
+    required: false
+  permission-vulnerability-alerts:
+    description: "The level of permission to grant the access token to manage Dependabot alerts. (read/write)"
+    required: false
+  permission-workflows:
+    description: "The level of permission to grant the access token to update GitHub Actions workflow files. (write)"
+    required: false
+  permission-custom-properties-for-organizations:
+    description: "The level of permission to grant the access token to view and edit custom properties for an organization, when allowed by the property. (read/write)"
+    required: false
+  permission-members:
+    description: "The level of permission to grant the access token for organization teams and members. (read/write)"
+    required: false
+  permission-organization-administration:
+    description: "The level of permission to grant the access token to manage access to an organization. (read/write)"
+    required: false
+  permission-organization-custom-roles:
+    description: "The level of permission to grant the access token for custom repository roles management. (read/write)"
+    required: false
+  permission-organization-custom-org-roles:
+    description: "The level of permission to grant the access token for custom organization roles management. (read/write)"
+    required: false
+  permission-organization-custom-properties:
+    description: "The level of permission to grant the access token for repository custom properties management at the organization level. (read/write/admin)"
+    required: false
+  permission-organization-copilot-seat-management:
+    description: "The level of permission to grant the access token for managing access to GitHub Copilot for members of an organization with a Copilot Business subscription. This property is in public preview and is subject to change. (write)"
+    required: false
+  permission-organization-announcement-banners:
+    description: "The level of permission to grant the access token to view and manage announcement banners for an organization. (read/write)"
+    required: false
+  permission-organization-events:
+    description: "The level of permission to grant the access token to view events triggered by an activity in an organization. (read)"
+    required: false
+  permission-organization-hooks:
+    description: "The level of permission to grant the access token to manage the post-receive hooks for an organization. (read/write)"
+    required: false
+  permission-organization-personal-access-tokens:
+    description: "The level of permission to grant the access token for viewing and managing fine-grained personal access token requests to an organization. (read/write)"
+    required: false
+  permission-organization-personal-access-token-requests:
+    description: "The level of permission to grant the access token for viewing and managing fine-grained personal access tokens that have been approved by an organization. (read/write)"
+    required: false
+  permission-organization-plan:
+    description: "The level of permission to grant the access token for viewing an organization's plan. (read)"
+    required: false
+  permission-organization-projects:
+    description: "The level of permission to grant the access token to manage organization projects and projects public preview (where available). (read/write/admin)"
+    required: false
+  permission-organization-packages:
+    description: "The level of permission to grant the access token for organization packages published to GitHub Packages. (read/write)"
+    required: false
+  permission-organization-secrets:
+    description: "The level of permission to grant the access token to manage organization secrets. (read/write)"
+    required: false
+  permission-organization-self-hosted-runners:
+    description: "The level of permission to grant the access token to view and manage GitHub Actions self-hosted runners available to an organization. (read/write)"
+    required: false
+  permission-organization-user-blocking:
+    description: "The level of permission to grant the access token to view and manage users blocked by the organization. (read/write)"
+    required: false
+  permission-team-discussions:
+    description: "The level of permission to grant the access token to manage team discussions and related comments. (read/write)"
+    required: false
+  permission-email-addresses:
+    description: "The level of permission to grant the access token to manage the email addresses belonging to a user. (read/write)"
+    required: false
+  permission-followers:
+    description: "The level of permission to grant the access token to manage the followers belonging to a user. (read/write)"
+    required: false
+  permission-git-ssh-keys:
+    description: "The level of permission to grant the access token to manage git SSH keys. (read/write)"
+    required: false
+  permission-gpg-keys:
+    description: "The level of permission to grant the access token to view and manage GPG keys belonging to a user. (read/write)"
+    required: false
+  permission-interaction-limits:
+    description: "The level of permission to grant the access token to view and manage interaction limits on a repository. (read/write)"
+    required: false
+  permission-profile:
+    description: "The level of permission to grant the access token to manage the profile settings belonging to a user. (write)"
+    required: false
+  permission-starring:
+    description: "The level of permission to grant the access token to list and manage repositories a user is starring. (read/write)"
+    required: false
+  permission-enterprise-custom-properties-for-organizations:
+    description: "The level of permission to grant the access token for organization custom properties management at the enterprise level. (read/write/admin)"
+    required: false
 
 outputs:
   token:
@@ -38,5 +200,59 @@ runs:
     - ${{ inputs.kms_key_id }}
     - ${{ inputs.kms_location }}
     - ${{ inputs.repositories }}
+    - ${{ inputs.permission-actions }}
+    - ${{ inputs.permission-administration }}
+    - ${{ inputs.permission-artifact-metadata }}
+    - ${{ inputs.permission-attestations }}
+    - ${{ inputs.permission-checks }}
+    - ${{ inputs.permission-codespaces }}
+    - ${{ inputs.permission-contents }}
+    - ${{ inputs.permission-dependabot-secrets }}
+    - ${{ inputs.permission-deployments }}
+    - ${{ inputs.permission-discussions }}
+    - ${{ inputs.permission-environments }}
+    - ${{ inputs.permission-issues }}
+    - ${{ inputs.permission-merge-queues }}
+    - ${{ inputs.permission-metadata }}
+    - ${{ inputs.permission-packages }}
+    - ${{ inputs.permission-pages }}
+    - ${{ inputs.permission-pull-requests }}
+    - ${{ inputs.permission-repository-custom-properties }}
+    - ${{ inputs.permission-repository-hooks }}
+    - ${{ inputs.permission-repository-projects }}
+    - ${{ inputs.permission-secret-scanning-alerts }}
+    - ${{ inputs.permission-secrets }}
+    - ${{ inputs.permission-security-events }}
+    - ${{ inputs.permission-single-file }}
+    - ${{ inputs.permission-statuses }}
+    - ${{ inputs.permission-vulnerability-alerts }}
+    - ${{ inputs.permission-workflows }}
+    - ${{ inputs.permission-custom-properties-for-organizations }}
+    - ${{ inputs.permission-members }}
+    - ${{ inputs.permission-organization-administration }}
+    - ${{ inputs.permission-organization-custom-roles }}
+    - ${{ inputs.permission-organization-custom-org-roles }}
+    - ${{ inputs.permission-organization-custom-properties }}
+    - ${{ inputs.permission-organization-copilot-seat-management }}
+    - ${{ inputs.permission-organization-announcement-banners }}
+    - ${{ inputs.permission-organization-events }}
+    - ${{ inputs.permission-organization-hooks }}
+    - ${{ inputs.permission-organization-personal-access-tokens }}
+    - ${{ inputs.permission-organization-personal-access-token-requests }}
+    - ${{ inputs.permission-organization-plan }}
+    - ${{ inputs.permission-organization-projects }}
+    - ${{ inputs.permission-organization-packages }}
+    - ${{ inputs.permission-organization-secrets }}
+    - ${{ inputs.permission-organization-self-hosted-runners }}
+    - ${{ inputs.permission-organization-user-blocking }}
+    - ${{ inputs.permission-team-discussions }}
+    - ${{ inputs.permission-email-addresses }}
+    - ${{ inputs.permission-followers }}
+    - ${{ inputs.permission-git-ssh-keys }}
+    - ${{ inputs.permission-gpg-keys }}
+    - ${{ inputs.permission-interaction-limits }}
+    - ${{ inputs.permission-profile }}
+    - ${{ inputs.permission-starring }}
+    - ${{ inputs.permission-enterprise-custom-properties-for-organizations }}
   entrypoint: "/ghat"
   post-entrypoint: "/post"
