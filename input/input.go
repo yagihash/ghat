@@ -8,10 +8,11 @@ import (
 )
 
 type Config struct {
-	AppID        string       `envconfig:"APP_ID"`
-	Owner        string       `envconfig:"OWNER"`
-	Repositories Repositories `envconfig:"REPOSITORIES"`
-	BaseURL      string       `envconfig:"BASE_URL" default:"https://api.github.com"`
+	AppID        string            `envconfig:"APP_ID"`
+	Owner        string            `envconfig:"OWNER"`
+	Repositories Repositories      `envconfig:"REPOSITORIES"`
+	Permissions  map[string]string `envconfig:"PERMISSION"`
+	BaseURL      string            `envconfig:"BASE_URL" default:"https://api.github.com"`
 
 	ProjectID string `envconfig:"KMS_PROJECT_ID"`
 	KeyRingID string `envconfig:"KMS_KEYRING_ID"`
