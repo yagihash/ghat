@@ -2,6 +2,10 @@
 version: '3'
 
 tasks:
+  default:
+    cmds:
+      - go build -trimpath -o dist/ghat ./cmd/ghat/main.go
+      - go build -trimpath -o dist/post ./cmd/post/main.go
   test:
     cmds:
       - go test -v -cover -race ./...
