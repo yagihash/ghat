@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+const (
+	EnvGitHubOutput = "GITHUB_OUTPUT"
+	EnvGitHubState  = "GITHUB_STATE"
+)
+
 func SetOutput(key, value string) error {
 	outputFilePath := os.Getenv("GITHUB_OUTPUT")
 	if outputFilePath == "" {
