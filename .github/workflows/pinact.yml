@@ -26,6 +26,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           REF: ${{ github.ref }}
           SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           OWNER=$(echo "$REPOSITORY" | cut -d '/' -f 1)
           REPO=$(echo "$REPOSITORY" | cut -d '/' -f 2)
