@@ -11,6 +11,7 @@ env:
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: main
     timeout-minutes: 15
     permissions:
       contents: write
