@@ -30,7 +30,7 @@ jobs:
           OWNER=$(echo "$REPOSITORY" | cut -d '/' -f 1)
           REPO=$(echo "$REPOSITORY" | cut -d '/' -f 2)
           PRN=$(echo "$REF" | sed -e 's/[^0-9]//g')
-          ./pinact \
+          ./pinact run \
             -review \
             -repo-owner "$OWNER" \
             -repo-name "$REPO" \
