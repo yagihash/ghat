@@ -7,7 +7,7 @@
     ":timezone(Asia/Tokyo)"
   ],
   "labels": ["dependencies"],
-  "schedule": ["before 10am on monday"],
+  "schedule": ["after 8pm on friday"],
   "prHourlyLimit": 0,
   "automerge": true,
   "platformAutomerge": true,
