@@ -1,0 +1,67 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":timezone(Asia/Tokyo)"
+  ],
+  "labels": ["dependencies"],
+  "schedule": ["before 10am on monday"],
+  "prHourlyLimit": 0,
+  "automerge": true,
+  "platformAutomerge": true,
+  "packageRules": [
+    {
+      "description": "Auto-merge minor and patch updates for Go dependencies",
+      "matchDatasources": ["go"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Require approval for major Go updates",
+      "matchDatasources": ["go"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "description": "Group GitHub Actions updates",
+      "groupName": "GitHub Actions",
+      "matchManagers": ["github-actions"],
+      "automerge": true,
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "description": "Group Google Cloud SDK updates together",
+      "groupName": "Google Cloud SDK",
+      "matchPackagePrefixes": ["cloud.google.com/go"],
+      "automerge": true,
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "description": "Group OpenTelemetry updates together",
+      "groupName": "OpenTelemetry",
+      "matchPackagePrefixes": ["go.opentelemetry.io"],
+      "automerge": true,
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "description": "Group golang.org/x/* updates together",
+      "groupName": "golang.org/x packages",
+      "matchPackagePrefixes": ["golang.org/x"],
+      "automerge": true,
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "description": "Group googleapis updates together",
+      "groupName": "googleapis packages",
+      "matchPackagePrefixes": ["google.golang.org"],
+      "automerge": true,
+      "matchUpdateTypes": ["minor", "patch"]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "automerge": false
+  }
+}
