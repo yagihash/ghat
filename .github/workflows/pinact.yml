@@ -1,0 +1,52 @@
+name: Run pinact
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  pinact:
+    runs-on: ubuntu-latest
+    environment: main
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - name: Create GitHub App Token
+        id: token
+        uses: ./
+        with:
+          app_id: ${{ secrets.BOT_GITHUB_APP_ID }}
+          kms_key_id: ${{ secrets.KMS_KEY_ID }}
+          kms_keyring_id: ${{ secrets.KMS_KEYRING_ID }}
+          kms_location: ${{ vars.KMS_LOCATION }}
+          kms_project_id: ${{ vars.KMS_PROJECT_ID }}
+          owner: yagihash
+          repositories: |
+            ghat
+          permission_contents: write
+
+      - name: Run pinact
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          curl -L -o pinact.tar.gz 'https://github.com/suzuki-shunsuke/pinact/releases/download/v3.8.0/pinact_linux_amd64.tar.gz'
+          tar xzf pinact.tar.gz pinact
+
+          ./pinact run README.md -u
+
+          git add README.md
+          git commit -m "chore: update README.md to refer latest version" || echo "No changes to commit"
+
+          git push origin main
