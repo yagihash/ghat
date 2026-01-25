@@ -96,3 +96,17 @@ jobs:
           
           git push origin "$TAG" --force
           git push origin "$MAJOR" --force
+
+      - name: Run pinact
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          curl -L -o pinact.tar.gz 'https://github.com/suzuki-shunsuke/pinact/releases/download/v3.8.0/pinact_linux_amd64.tar.gz'
+          tar xzf pinact.tar.gz pinact
+          
+          ./pinact run README.md -u
+          
+          git add README.md
+          git commit -m "chore: update README.md to refer latest version" || echo "No changes to commit"
+          
+          git push origin main
