@@ -38,6 +38,14 @@ jobs:
             ghat
           permission_contents: write
 
+      - name: Setup git
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          gh auth setup-git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Run pinact
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
