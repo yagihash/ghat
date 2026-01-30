@@ -16,7 +16,7 @@ inputs:
   kms_key_id:
     description: "KMS key ID"
     required: true
-  kms_key_verison:
+  kms_key_version:
     description: "KMS key version (defaults to '1')"
     required: false
   kms_location:
