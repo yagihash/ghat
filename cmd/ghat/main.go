@@ -35,9 +35,7 @@ func realMain() int {
 		return exitErr
 	}
 
-	envkeyversion, _ := os.LookupEnv("INPUT_KMS_KEY_VERSION")
-	fmt.Printf("envkeyversion: %+v\n", envkeyversion)
-	fmt.Printf("args.KeyVersion: %+v\n", args.KeyVersion)
+	fmt.Printf("args: %+v\n", args)
 	signer, err := kms.NewSigner(ctx, args.ProjectID, args.Location, args.KeyRingID, args.KeyID, args.KeyVersion)
 	if err != nil {
 		actions.LogError("failed to create signer: " + err.Error())
