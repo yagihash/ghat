@@ -9,10 +9,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/yagihash/ghat/actions"
-	"github.com/yagihash/ghat/client"
-	"github.com/yagihash/ghat/input"
-	"github.com/yagihash/ghat/kms"
+	"github.com/yagihash/ghat/v2/actions"
+	"github.com/yagihash/ghat/v2/client"
+	"github.com/yagihash/ghat/v2/input"
+	"github.com/yagihash/ghat/v2/kms"
 )
 
 const (
@@ -35,7 +35,6 @@ func realMain() int {
 		return exitErr
 	}
 
-	fmt.Printf("args: %+v\n", args)
 	signer, err := kms.NewSigner(ctx, args.ProjectID, args.Location, args.KeyRingID, args.KeyID, args.KeyVersion)
 	if err != nil {
 		actions.LogError("failed to create signer: " + err.Error())

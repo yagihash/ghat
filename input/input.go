@@ -1,7 +1,6 @@
 package input
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -28,8 +27,6 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	fmt.Printf("config: %+v\n", c)
-
 	if c.Owner == "" {
 		c.Owner = os.Getenv("GITHUB_REPOSITORY_OWNER")
 	}
@@ -37,8 +34,6 @@ func Load() (*Config, error) {
 	if c.KeyVersion == "" {
 		c.KeyVersion = "1"
 	}
-
-	fmt.Printf("config: %+v\n", c)
 
 	if len(c.Permissions) > 0 {
 		lowered := make(map[string]string, len(c.Permissions))
