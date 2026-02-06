@@ -12,7 +12,7 @@ import (
 	"github.com/yagihash/ghat/actions"
 	"github.com/yagihash/ghat/client"
 	"github.com/yagihash/ghat/input"
-	"github.com/yagihash/ghat/v2/kms"
+	"github.com/yagihash/ghat/kms"
 )
 
 const (
@@ -35,6 +35,9 @@ func realMain() int {
 		return exitErr
 	}
 
+	envkeyversion, _ := os.LookupEnv("INPUT_KMS_KEY_VERSION")
+	fmt.Printf("envkeyversion: %+v\n", envkeyversion)
+	fmt.Printf("args.KeyVersion: %+v\n", args.KeyVersion)
 	signer, err := kms.NewSigner(ctx, args.ProjectID, args.Location, args.KeyRingID, args.KeyID, args.KeyVersion)
 	if err != nil {
 		actions.LogError("failed to create signer: " + err.Error())
