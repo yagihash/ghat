@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"time"
 
 	"github.com/yagihash/ghat/actions"
@@ -13,6 +14,8 @@ import (
 	"github.com/yagihash/ghat/input"
 	"github.com/yagihash/ghat/kms"
 )
+
+var isActions = os.Getenv("GITHUB_ACTIONS") == "true"
 
 func main() {
 	ctx := context.Background()
@@ -115,13 +118,17 @@ func main() {
 		}
 	}(res.Body)
 
-	actions.AddMask(accessToken.Token)
+	if isActions {
+		actions.AddMask(accessToken.Token)
 
-	if err := actions.SetState("token", accessToken.Token); err != nil {
-		actions.LogError(err.Error())
-	}
+		if err := actions.SetState("token", accessToken.Token); err != nil {
+			actions.LogError(err.Error())
+		}
 
-	if err := actions.SetOutput("token", accessToken.Token); err != nil {
-		actions.LogError(err.Error())
+		if err := actions.SetOutput("token", accessToken.Token); err != nil {
+			actions.LogError(err.Error())
+		}
+	} else {
+		fmt.Print(accessToken.Token)
 	}
 }

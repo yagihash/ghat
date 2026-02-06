@@ -120,3 +120,21 @@ CLOUDSDK_PYTHON_SITEPACKAGES=1 gcloud kms keys versions import \
   --algorithm=rsa-sign-pkcs1-2048-sha256 \
   --target-key-file=./formatted-your-app-private-key.der
 ```
+
+## For other use-cases
+You can use this for other general use-cases. I will include executables in releases later.
+
+```bash
+go install github.com/yagihash/ghat/cmd/ghat@latest
+
+INPUT_KMS_PROJECT_ID=YOUR_GOOGLE_CLOUD_PROJECT_ID \
+INPUT_KMS_KEYRING_ID=YOUR_KMS_KEYRING_ID \
+INPUT_KMS_KEY_ID=YOUR_KMS_KEY_ID \
+INPUT_KMS_LOCATION=YOUR_KMS_REGION \
+INPUT_OWNER=YOUR_GITHUB_USER_OR_ORG_NAME \ 
+INPUT_APP_ID=YOUR_GITHUB_APP_ID \ 
+ghat
+
+# with env vars
+GH_TOKEN=$(ghat) gh auth status
+```
