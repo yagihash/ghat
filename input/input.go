@@ -17,7 +17,7 @@ type Config struct {
 	ProjectID  string `envconfig:"KMS_PROJECT_ID" required:"true"`
 	KeyRingID  string `envconfig:"KMS_KEYRING_ID" required:"true"`
 	KeyID      string `envconfig:"KMS_KEY_ID" required:"true"`
-	KeyVersion string `envconfig:"KMS_KEY_VERSION"`
+	KeyVersion string `envconfig:"KMS_KEY_VERSION" default:"1"`
 	Location   string `envconfig:"KMS_LOCATION" required:"true"`
 }
 
