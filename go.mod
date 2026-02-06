@@ -1,4 +1,4 @@
-module github.com/yagihash/ghat
+module github.com/yagihash/ghat/v2
 
 go 1.25.1
 

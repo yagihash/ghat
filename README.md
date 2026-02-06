@@ -125,7 +125,7 @@ CLOUDSDK_PYTHON_SITEPACKAGES=1 gcloud kms keys versions import \
 You can use this for other general use-cases. I will include executables in releases later.
 
 ```bash
-go install github.com/yagihash/ghat/cmd/ghat@latest
+go install github.com/yagihash/ghat/v2/cmd/ghat@latest
 
 INPUT_KMS_PROJECT_ID=YOUR_GOOGLE_CLOUD_PROJECT_ID \
 INPUT_KMS_KEYRING_ID=YOUR_KMS_KEYRING_ID \
