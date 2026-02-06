@@ -15,21 +15,30 @@ import (
 	"github.com/yagihash/ghat/kms"
 )
 
+const (
+	exitOK = iota
+	exitErr
+)
+
 var isActions = os.Getenv("GITHUB_ACTIONS") == "true"
 
 func main() {
+	os.Exit(realMain())
+}
+
+func realMain() int {
 	ctx := context.Background()
 
 	args, err := input.Load()
 	if err != nil {
 		actions.LogError("failed to load inputs: " + err.Error())
-		return
+		return exitErr
 	}
 
 	signer, err := kms.NewSigner(ctx, args.ProjectID, args.Location, args.KeyRingID, args.KeyID, args.KeyVersion)
 	if err != nil {
 		actions.LogError("failed to create signer: " + err.Error())
-		return
+		return exitErr
 	}
 	defer func(signer *kms.Signer) {
 		err := signer.Close()
@@ -56,13 +65,13 @@ func main() {
 	headerJSON, err := json.Marshal(header)
 	if err != nil {
 		actions.LogError("failed to marshal jwt header: " + err.Error())
-		return
+		return exitErr
 	}
 
 	payloadJSON, err := json.Marshal(payload)
 	if err != nil {
 		actions.LogError("failed to marshal jwt payload: " + err.Error())
-		return
+		return exitErr
 	}
 
 	headerBase64url := base64.RawURLEncoding.EncodeToString(headerJSON)
@@ -73,7 +82,7 @@ func main() {
 	sig, err := signer.Sign(ctx, []byte(unsignedJWT))
 	if err != nil {
 		actions.LogError("failed to sign jwt: " + err.Error())
-		return
+		return exitErr
 	}
 
 	signatureBase64url := base64.RawURLEncoding.EncodeToString(sig)
@@ -85,7 +94,7 @@ func main() {
 	res, err := c.GetInstallationByOwner(args.Owner)
 	if err != nil {
 		actions.LogError("failed to get installation: " + err.Error())
-		return
+		return exitErr
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -97,19 +106,19 @@ func main() {
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		actions.LogError("failed to read body of installation response: " + err.Error())
-		return
+		return exitErr
 	}
 
 	var installation client.InstallationResponse
 	if err := json.Unmarshal(body, &installation); err != nil {
 		actions.LogError("failed to unmarshal installation response: " + err.Error())
-		return
+		return exitErr
 	}
 
 	accessToken, err := c.GetInstallationAccessToken(installation.ID, args.Permissions, args.Repositories)
 	if err != nil {
 		actions.LogError("failed to get access token: " + err.Error())
-		return
+		return exitErr
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -123,12 +132,16 @@ func main() {
 
 		if err := actions.SetState("token", accessToken.Token); err != nil {
 			actions.LogError(err.Error())
+			return exitErr
 		}
 
 		if err := actions.SetOutput("token", accessToken.Token); err != nil {
 			actions.LogError(err.Error())
+			return exitErr
 		}
 	} else {
 		fmt.Print(accessToken.Token)
 	}
+
+	return exitOK
 }
