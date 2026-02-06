@@ -12,7 +12,7 @@ import (
 	"github.com/yagihash/ghat/actions"
 	"github.com/yagihash/ghat/client"
 	"github.com/yagihash/ghat/input"
-	"github.com/yagihash/ghat/kms"
+	"github.com/yagihash/ghat/v2/kms"
 )
 
 const (
