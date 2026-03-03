@@ -11,6 +11,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -trimpath -o /post ./cmd/
 RUN upx --best /ghat
 RUN upx --best /post
 
-FROM alpine:3.23.2
+FROM alpine:3.23.3
 COPY --from=builder /ghat /ghat
 COPY --from=builder /post /post
