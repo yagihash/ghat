@@ -7,59 +7,99 @@
     ":timezone(Asia/Tokyo)",
     "helpers:pinGitHubActionDigestsToSemver"
   ],
-  "labels": ["dependencies"],
-  "reviewers": ["yagihash"],
-  "schedule": ["after 8pm on friday"],
+  "labels": [
+    "dependencies"
+  ],
+  "reviewers": [
+    "yagihash"
+  ],
+  "schedule": [
+    "after 8pm on friday"
+  ],
   "prHourlyLimit": 0,
   "automerge": false,
   "platformAutomerge": false,
   "rangeStrategy": "pin",
-  "stabilityDays": 3,
+  "minimumReleaseAge": "3 days",
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["after 8pm on friday"]
+    "schedule": [
+      "after 8pm on friday"
+    ]
   },
   "packageRules": [
     {
       "description": "Pin GitHub Actions to commit SHA for security",
-      "matchManagers": ["github-actions"],
+      "matchManagers": [
+        "github-actions"
+      ],
       "pinDigests": true
     },
     {
       "description": "Group GitHub Actions updates",
       "groupName": "GitHub Actions",
-      "matchManagers": ["github-actions"],
-      "matchUpdateTypes": ["minor", "patch", "digest"]
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest"
+      ]
     },
     {
       "description": "Group Google Cloud SDK updates together",
       "groupName": "Google Cloud SDK",
-      "matchPackagePrefixes": ["cloud.google.com/go"],
-      "matchUpdateTypes": ["minor", "patch"]
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "matchPackageNames": [
+        "cloud.google.com/go{/,}**"
+      ]
     },
     {
       "description": "Group OpenTelemetry updates together",
       "groupName": "OpenTelemetry",
-      "matchPackagePrefixes": ["go.opentelemetry.io"],
-      "matchUpdateTypes": ["minor", "patch"]
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "matchPackageNames": [
+        "go.opentelemetry.io{/,}**"
+      ]
     },
     {
       "description": "Group golang.org/x/* updates together",
       "groupName": "golang.org/x packages",
-      "matchPackagePrefixes": ["golang.org/x"],
-      "matchUpdateTypes": ["minor", "patch"]
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "matchPackageNames": [
+        "golang.org/x{/,}**"
+      ]
     },
     {
       "description": "Group googleapis updates together",
       "groupName": "googleapis packages",
-      "matchPackagePrefixes": ["google.golang.org"],
-      "matchUpdateTypes": ["minor", "patch"]
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "matchPackageNames": [
+        "google.golang.org{/,}**"
+      ]
     }
   ],
   "vulnerabilityAlerts": {
-    "labels": ["security"],
+    "labels": [
+      "security"
+    ],
     "automerge": false,
-    "stabilityDays": 0,
-    "schedule": ["at any time"]
+    "minimumReleaseAge": null,
+    "schedule": [
+      "at any time"
+    ]
   }
 }
