@@ -47,6 +47,35 @@ func TestLoad_DefaultKeyVersion(t *testing.T) {
 	}
 }
 
+// TestLoad_EmptyKeyVersion verifies that KeyVersion defaults to "1" even when
+// INPUT_KMS_KEY_VERSION is explicitly set to an empty string. This is a real
+// scenario in GitHub Actions: optional inputs with no default in action.yml
+// are passed as empty strings, not as unset variables. envconfig's default
+// tag only fires when the variable is completely absent (!ok), so the explicit
+// check `if c.KeyVersion == ""` in Load() is necessary and must not be removed.
+func TestLoad_EmptyKeyVersion(t *testing.T) {
+	t.Setenv("INPUT_APP_ID", "12345")
+	t.Setenv("INPUT_OWNER", "owner")
+	t.Setenv("INPUT_REPOSITORIES", "owner/repo1,owner/repo2")
+	t.Setenv("INPUT_PERMISSION_CONTENTS", "write")
+	t.Setenv("INPUT_PERMISSION_ISSUES", "read")
+	t.Setenv("INPUT_BASE_URL", "https://api.github.com")
+	t.Setenv("INPUT_KMS_PROJECT_ID", "project-id")
+	t.Setenv("INPUT_KMS_KEYRING_ID", "keyring-id")
+	t.Setenv("INPUT_KMS_KEY_ID", "key-id")
+	t.Setenv("INPUT_KMS_KEY_VERSION", "")
+	t.Setenv("INPUT_KMS_LOCATION", "us-central1")
+
+	i, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if i.KeyVersion != "1" {
+		t.Errorf("KeyVersion should be set to default value even when INPUT_KMS_KEY_VERSION is empty string, got: %q", i.KeyVersion)
+	}
+}
+
 func TestRepositories_Decode(t *testing.T) {
 	tests := []struct {
 		name    string
