@@ -1,0 +1,17 @@
+{
+  "env": {
+    "GOTOOLCHAIN": "auto"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'go version'"
+          }
+        ]
+      }
+    ]
+  }
+}
