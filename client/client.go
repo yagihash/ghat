@@ -95,7 +95,10 @@ func (c *Client) GetInstallationAccessToken(installationID int64, permissions ma
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get token: %s (failed to read body: %w)", resp.Status, err)
+		}
 		return nil, fmt.Errorf("failed to get token: %s, body: %s", resp.Status, string(body))
 	}
 
