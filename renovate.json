@@ -5,7 +5,8 @@
     ":dependencyDashboard",
     ":semanticCommits",
     ":timezone(Asia/Tokyo)",
-    "helpers:pinGitHubActionDigestsToSemver"
+    "helpers:pinGitHubActionDigestsToSemver",
+    "mergeConfidence:all-badges"
   ],
   "labels": [
     "dependencies"
@@ -17,10 +18,12 @@
     "after 8pm on friday"
   ],
   "prHourlyLimit": 0,
-  "automerge": false,
-  "platformAutomerge": false,
+  "automerge": true,
+  "automergeType": "pr",
+  "platformAutomerge": true,
   "rangeStrategy": "pin",
   "minimumReleaseAge": "3 days",
+  "osvVulnerabilityAlerts": true,
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": [
@@ -29,6 +32,13 @@
   },
   "packageRules": [
     {
+      "description": "Never automerge major updates",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "automerge": false
+    },
+    {
       "description": "Pin GitHub Actions to commit SHA for security",
       "matchManagers": [
         "github-actions"
@@ -36,7 +46,7 @@
       "pinDigests": true
     },
     {
-      "description": "Group GitHub Actions updates",
+      "description": "Group and automerge GitHub Actions digest/minor/patch updates",
       "groupName": "GitHub Actions",
       "matchManagers": [
         "github-actions"
@@ -45,7 +55,8 @@
         "minor",
         "patch",
         "digest"
-      ]
+      ],
+      "automerge": true
     },
     {
       "description": "Group Google Cloud SDK updates together",
@@ -90,13 +101,24 @@
       "matchPackageNames": [
         "google.golang.org{/,}**"
       ]
+    },
+    {
+      "description": "Automerge Go module minor/patch updates",
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true
     }
   ],
   "vulnerabilityAlerts": {
     "labels": [
       "security"
     ],
-    "automerge": false,
+    "automerge": true,
     "minimumReleaseAge": null,
     "schedule": [
       "at any time"
