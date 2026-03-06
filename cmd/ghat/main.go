@@ -20,6 +20,15 @@ const (
 	exitErr
 )
 
+const (
+	// jwtIssuedAtSkew adjusts the iat claim into the past to account for
+	// clock skew between the local machine and GitHub's servers.
+	jwtIssuedAtSkew = -60 * time.Second
+	// jwtExpiry is the duration for which the JWT is valid.
+	// GitHub Apps require JWTs to expire within 10 minutes.
+	jwtExpiry = 600 * time.Second
+)
+
 var isActions = os.Getenv("GITHUB_ACTIONS") == "true"
 
 func main() {
@@ -48,8 +57,8 @@ func realMain() int {
 	}(signer)
 
 	now := time.Now()
-	iat := now.Add(-60 * time.Second).Unix()
-	exp := now.Add(600 * time.Second).Unix()
+	iat := now.Add(jwtIssuedAtSkew).Unix()
+	exp := now.Add(jwtExpiry).Unix()
 
 	header := map[string]any{
 		"typ": "token",
