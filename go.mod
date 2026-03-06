@@ -1,6 +1,6 @@
 module github.com/yagihash/ghat/v2
 
-go 1.26
+go 1.26.1
 
 require (
 	cloud.google.com/go/kms v1.26.0
