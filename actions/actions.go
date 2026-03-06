@@ -17,6 +17,10 @@ func SetOutput(key, value string) error {
 		return fmt.Errorf("GITHUB_OUTPUT environment variable is not set")
 	}
 
+	if strings.Contains(value, "\n") {
+		return fmt.Errorf("SetOutput does not support new-line characters in the value: %s", value)
+	}
+
 	if err := writeKeyValue(outputFilePath, key, value); err != nil {
 		return fmt.Errorf("failed to write output: %w", err)
 	}
