@@ -65,14 +65,30 @@ func (c *Client) newRequest(method, path string, body any) (*http.Request, error
 	return req, nil
 }
 
-func (c *Client) GetInstallationByOwner(owner string) (*http.Response, error) {
+func (c *Client) GetInstallationByOwner(owner string) (*InstallationResponse, error) {
 	path := fmt.Sprintf("users/%s/installation", owner)
 	req, err := c.newRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return c.HTTPClient.Do(req)
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("failed to get installation: %s, body: %s", resp.Status, string(body))
+	}
+
+	var installation InstallationResponse
+	if err := json.NewDecoder(resp.Body).Decode(&installation); err != nil {
+		return nil, err
+	}
+
+	return &installation, nil
 }
 
 func (c *Client) GetInstallationAccessToken(installationID int64, permissions map[string]string, repos []string) (*AccessTokenResponse, error) {

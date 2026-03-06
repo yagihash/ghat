@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"time"
 
@@ -99,26 +98,9 @@ func realMain() int {
 
 	c := client.New(args.BaseURL, signedJWT)
 
-	res, err := c.GetInstallationByOwner(args.Owner)
+	installation, err := c.GetInstallationByOwner(args.Owner)
 	if err != nil {
 		actions.LogError("failed to get installation: " + err.Error())
-		return exitErr
-	}
-	defer func(Body io.ReadCloser) {
-		if err := Body.Close(); err != nil {
-			actions.LogWarning("failed to close response body: " + err.Error())
-		}
-	}(res.Body)
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		actions.LogError("failed to read body of installation response: " + err.Error())
-		return exitErr
-	}
-
-	var installation client.InstallationResponse
-	if err := json.Unmarshal(body, &installation); err != nil {
-		actions.LogError("failed to unmarshal installation response: " + err.Error())
 		return exitErr
 	}
 
