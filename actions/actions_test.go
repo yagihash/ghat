@@ -6,8 +6,6 @@ import (
 	"testing"
 )
 
-const ()
-
 func TestSetOutput(t *testing.T) {
 	tempDir := t.TempDir()
 	path := filepath.Join(tempDir, "/github_output")
@@ -31,6 +29,14 @@ func TestSetOutput(t *testing.T) {
 
 	if string(content) != "key=value\n" {
 		t.Fatalf("unexpected content: %s", content)
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if perm := info.Mode().Perm(); perm != 0600 {
+		t.Fatalf("unexpected file permission: %o", perm)
 	}
 
 	_ = os.Unsetenv(EnvGitHubOutput)
