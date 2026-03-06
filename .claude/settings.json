@@ -8,7 +8,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'go version'"
+            "command": "bash -c 'GO_VER=$(grep \"^go \" go.mod | awk \"{print \\$2}\") && INSTALL_DIR=/usr/local/go${GO_VER}.0 && if [ ! -d \"$INSTALL_DIR\" ]; then ZIP=/tmp/go${GO_VER}.0.zip && curl -fsSL -o $ZIP \"https://proxy.golang.org/golang.org/toolchain/@v/v0.0.1-go${GO_VER}.0.linux-amd64.zip\" && mkdir -p /tmp/go${GO_VER}.0_extract && unzip -q $ZIP -d /tmp/go${GO_VER}.0_extract && mv \"/tmp/go${GO_VER}.0_extract/golang.org/toolchain@v0.0.1-go${GO_VER}.0.linux-amd64\" $INSTALL_DIR && chmod +x $INSTALL_DIR/bin/go && rm -rf $ZIP /tmp/go${GO_VER}.0_extract; fi && rm -f /usr/local/go && ln -s $INSTALL_DIR /usr/local/go && GOTOOLCHAIN=local go version'"
           }
         ]
       }
