@@ -20,6 +20,15 @@ const (
 	exitErr
 )
 
+const (
+	// jwtIssuedAtSkew adjusts the iat claim into the past to account for
+	// clock skew between the local machine and GitHub's servers.
+	jwtIssuedAtSkew = -60 * time.Second
+	// jwtExpiry is the duration for which the JWT is valid.
+	// GitHub Apps require JWTs to expire within 10 minutes.
+	jwtExpiry = 600 * time.Second
+)
+
 var isActions = os.Getenv("GITHUB_ACTIONS") == "true"
 
 func main() {
@@ -41,15 +50,14 @@ func realMain() int {
 		return exitErr
 	}
 	defer func(signer *kms.Signer) {
-		err := signer.Close()
-		if err != nil {
-			panic(err)
+		if err := signer.Close(); err != nil {
+			actions.LogWarning("failed to close KMS signer: " + err.Error())
 		}
 	}(signer)
 
 	now := time.Now()
-	iat := now.Add(-60 * time.Second).Unix()
-	exp := now.Add(600 * time.Second).Unix()
+	iat := now.Add(jwtIssuedAtSkew).Unix()
+	exp := now.Add(jwtExpiry).Unix()
 
 	header := map[string]any{
 		"typ": "token",
@@ -97,9 +105,8 @@ func realMain() int {
 		return exitErr
 	}
 	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
+		if err := Body.Close(); err != nil {
+			actions.LogWarning("failed to close response body: " + err.Error())
 		}
 	}(res.Body)
 
@@ -120,13 +127,6 @@ func realMain() int {
 		actions.LogError("failed to get access token: " + err.Error())
 		return exitErr
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(res.Body)
-
 	if isActions {
 		actions.AddMask(accessToken.Token)
 

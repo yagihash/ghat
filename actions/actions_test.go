@@ -10,9 +10,7 @@ func TestSetOutput(t *testing.T) {
 	tempDir := t.TempDir()
 	path := filepath.Join(tempDir, "/github_output")
 
-	if err := os.Setenv(EnvGitHubOutput, path); err != nil {
-		t.Fatal(err)
-	}
+	t.Setenv(EnvGitHubOutput, path)
 
 	if err := SetOutput("key", "value"); err != nil {
 		t.Fatal(err)
@@ -46,9 +44,7 @@ func TestSetState(t *testing.T) {
 	tempDir := t.TempDir()
 	path := filepath.Join(tempDir, "/github_state")
 
-	if err := os.Setenv(EnvGitHubState, path); err != nil {
-		t.Fatal(err)
-	}
+	t.Setenv(EnvGitHubState, path)
 
 	if err := SetState("key", "value"); err != nil {
 		t.Fatal(err)
@@ -66,14 +62,10 @@ func TestSetState(t *testing.T) {
 	if string(content) != "KEY=value\n" {
 		t.Fatalf("unexpected content: %s", content)
 	}
-
-	_ = os.Unsetenv(EnvGitHubState)
 }
 
 func TestGetState(t *testing.T) {
-	if err := os.Setenv("STATE_KEY", "value"); err != nil {
-		t.Fatal(err)
-	}
+	t.Setenv("STATE_KEY", "value")
 
 	val, err := GetState("key")
 	if err != nil {
@@ -83,6 +75,4 @@ func TestGetState(t *testing.T) {
 	if val != "value" {
 		t.Fatalf("unexpected value: %s", val)
 	}
-
-	_ = os.Unsetenv("STATE_KEY")
 }

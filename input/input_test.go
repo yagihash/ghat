@@ -1,54 +1,41 @@
 package input
 
 import (
-	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 )
 
 func TestLoad(t *testing.T) {
-	os.Setenv("INPUT_APP_ID", "12345")
-	os.Setenv("INPUT_OWNER", "owner")
-	os.Setenv("INPUT_REPOSITORIES", "owner/repo1,owner/repo2")
-	os.Setenv("INPUT_PERMISSION_CONTENTS", "write")
-	os.Setenv("INPUT_PERMISSION_ISSUES", "read")
-	os.Setenv("INPUT_BASE_URL", "https://api.github.com")
-	os.Setenv("INPUT_KMS_PROJECT_ID", "project-id")
-	os.Setenv("INPUT_KMS_KEYRING_ID", "keyring-id")
-	os.Setenv("INPUT_KMS_KEY_ID", "key-id")
-	os.Setenv("INPUT_KMS_KEY_VERSION", "1")
-	os.Setenv("INPUT_KMS_LOCATION", "us-central1")
+	t.Setenv("INPUT_APP_ID", "12345")
+	t.Setenv("INPUT_OWNER", "owner")
+	t.Setenv("INPUT_REPOSITORIES", "owner/repo1,owner/repo2")
+	t.Setenv("INPUT_PERMISSION_CONTENTS", "write")
+	t.Setenv("INPUT_PERMISSION_ISSUES", "read")
+	t.Setenv("INPUT_BASE_URL", "https://api.github.com")
+	t.Setenv("INPUT_KMS_PROJECT_ID", "project-id")
+	t.Setenv("INPUT_KMS_KEYRING_ID", "keyring-id")
+	t.Setenv("INPUT_KMS_KEY_ID", "key-id")
+	t.Setenv("INPUT_KMS_KEY_VERSION", "1")
+	t.Setenv("INPUT_KMS_LOCATION", "us-central1")
 
 	_, err := Load()
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	os.Unsetenv("INPUT_APP_ID")
-	os.Unsetenv("INPUT_OWNER")
-	os.Unsetenv("INPUT_REPOSITORIES")
-	os.Unsetenv("INPUT_PERMISSION_CONTENTS")
-	os.Unsetenv("INPUT_PERMISSION_ISSUES")
-	os.Unsetenv("INPUT_BASE_URL")
-	os.Unsetenv("INPUT_KMS_PROJECT_ID")
-	os.Unsetenv("INPUT_KMS_KEYRING_ID")
-	os.Unsetenv("INPUT_KMS_KEY_ID")
-	os.Unsetenv("INPUT_KMS_KEY_VERSION")
-	os.Unsetenv("INPUT_KMS_LOCATION")
 }
 
 func TestLoad_DefaultKeyVersion(t *testing.T) {
-	os.Setenv("INPUT_APP_ID", "12345")
-	os.Setenv("INPUT_OWNER", "owner")
-	os.Setenv("INPUT_REPOSITORIES", "owner/repo1,owner/repo2")
-	os.Setenv("INPUT_PERMISSION_CONTENTS", "write")
-	os.Setenv("INPUT_PERMISSION_ISSUES", "read")
-	os.Setenv("INPUT_BASE_URL", "https://api.github.com")
-	os.Setenv("INPUT_KMS_PROJECT_ID", "project-id")
-	os.Setenv("INPUT_KMS_KEYRING_ID", "keyring-id")
-	os.Setenv("INPUT_KMS_KEY_ID", "key-id")
-	os.Setenv("INPUT_KMS_LOCATION", "us-central1")
+	t.Setenv("INPUT_APP_ID", "12345")
+	t.Setenv("INPUT_OWNER", "owner")
+	t.Setenv("INPUT_REPOSITORIES", "owner/repo1,owner/repo2")
+	t.Setenv("INPUT_PERMISSION_CONTENTS", "write")
+	t.Setenv("INPUT_PERMISSION_ISSUES", "read")
+	t.Setenv("INPUT_BASE_URL", "https://api.github.com")
+	t.Setenv("INPUT_KMS_PROJECT_ID", "project-id")
+	t.Setenv("INPUT_KMS_KEYRING_ID", "keyring-id")
+	t.Setenv("INPUT_KMS_KEY_ID", "key-id")
+	t.Setenv("INPUT_KMS_LOCATION", "us-central1")
 
 	i, err := Load()
 	if err != nil {
@@ -58,17 +45,35 @@ func TestLoad_DefaultKeyVersion(t *testing.T) {
 	if i.KeyVersion != "1" {
 		t.Errorf("KeyVersion should be set to default value: %s", i.KeyVersion)
 	}
+}
 
-	os.Unsetenv("INPUT_APP_ID")
-	os.Unsetenv("INPUT_OWNER")
-	os.Unsetenv("INPUT_REPOSITORIES")
-	os.Unsetenv("INPUT_PERMISSION_CONTENTS")
-	os.Unsetenv("INPUT_PERMISSION_ISSUES")
-	os.Unsetenv("INPUT_BASE_URL")
-	os.Unsetenv("INPUT_KMS_PROJECT_ID")
-	os.Unsetenv("INPUT_KMS_KEYRING_ID")
-	os.Unsetenv("INPUT_KMS_KEY_ID")
-	os.Unsetenv("INPUT_KMS_LOCATION")
+// TestLoad_EmptyKeyVersion verifies that KeyVersion defaults to "1" even when
+// INPUT_KMS_KEY_VERSION is explicitly set to an empty string. This is a real
+// scenario in GitHub Actions: optional inputs with no default in action.yml
+// are passed as empty strings, not as unset variables. envconfig's default
+// tag only fires when the variable is completely absent (!ok), so the explicit
+// check `if c.KeyVersion == ""` in Load() is necessary and must not be removed.
+func TestLoad_EmptyKeyVersion(t *testing.T) {
+	t.Setenv("INPUT_APP_ID", "12345")
+	t.Setenv("INPUT_OWNER", "owner")
+	t.Setenv("INPUT_REPOSITORIES", "owner/repo1,owner/repo2")
+	t.Setenv("INPUT_PERMISSION_CONTENTS", "write")
+	t.Setenv("INPUT_PERMISSION_ISSUES", "read")
+	t.Setenv("INPUT_BASE_URL", "https://api.github.com")
+	t.Setenv("INPUT_KMS_PROJECT_ID", "project-id")
+	t.Setenv("INPUT_KMS_KEYRING_ID", "keyring-id")
+	t.Setenv("INPUT_KMS_KEY_ID", "key-id")
+	t.Setenv("INPUT_KMS_KEY_VERSION", "")
+	t.Setenv("INPUT_KMS_LOCATION", "us-central1")
+
+	i, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if i.KeyVersion != "1" {
+		t.Errorf("KeyVersion should be set to default value even when INPUT_KMS_KEY_VERSION is empty string, got: %q", i.KeyVersion)
+	}
 }
 
 func TestRepositories_Decode(t *testing.T) {
