@@ -5,7 +5,7 @@
 **ghat** is a GitHub Action (and standalone CLI tool) that generates GitHub App installation access tokens by signing JWTs with Google Cloud KMS rather than storing private keys locally. This improves security for CI/CD pipelines by leveraging Workload Identity Federation and hardware-backed key storage.
 
 **Module path:** `github.com/yagihash/ghat/v2`
-**Language:** Go 1.25+
+**Language:** Go 1.26+
 **License:** MIT
 
 ---
