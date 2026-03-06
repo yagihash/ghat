@@ -42,7 +42,7 @@ func realMain() int {
 	}
 	defer func(signer *kms.Signer) {
 		if err := signer.Close(); err != nil {
-			actions.LogError("failed to close KMS signer: " + err.Error())
+			actions.LogWarning("failed to close KMS signer: " + err.Error())
 		}
 	}(signer)
 
@@ -97,7 +97,7 @@ func realMain() int {
 	}
 	defer func(Body io.ReadCloser) {
 		if err := Body.Close(); err != nil {
-			actions.LogError("failed to close response body: " + err.Error())
+			actions.LogWarning("failed to close response body: " + err.Error())
 		}
 	}(res.Body)
 
