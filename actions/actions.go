@@ -104,7 +104,7 @@ func normalizeToEnvKey(key string) string {
 }
 
 func writeKeyValue(path, key, value string) error {
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to open %s: %w", path, err)
 	}
