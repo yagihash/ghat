@@ -40,6 +40,21 @@ func TestSetOutput(t *testing.T) {
 	_ = os.Unsetenv(EnvGitHubOutput)
 }
 
+func TestSetOutput_NewlineInValue(t *testing.T) {
+	tempDir := t.TempDir()
+	path := filepath.Join(tempDir, "/github_output")
+
+	if err := os.Setenv(EnvGitHubOutput, path); err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = os.Unsetenv(EnvGitHubOutput) }()
+
+	err := SetOutput("key", "line1\nline2")
+	if err == nil {
+		t.Fatal("expected error for newline in value, got nil")
+	}
+}
+
 func TestSetState(t *testing.T) {
 	tempDir := t.TempDir()
 	path := filepath.Join(tempDir, "/github_state")
