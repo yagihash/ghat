@@ -50,9 +50,8 @@ func realMain() int {
 		return exitErr
 	}
 	defer func(signer *kms.Signer) {
-		err := signer.Close()
-		if err != nil {
-			panic(err)
+		if err := signer.Close(); err != nil {
+			actions.LogWarning("failed to close KMS signer: " + err.Error())
 		}
 	}(signer)
 
@@ -106,9 +105,8 @@ func realMain() int {
 		return exitErr
 	}
 	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
+		if err := Body.Close(); err != nil {
+			actions.LogWarning("failed to close response body: " + err.Error())
 		}
 	}(res.Body)
 
@@ -129,13 +127,6 @@ func realMain() int {
 		actions.LogError("failed to get access token: " + err.Error())
 		return exitErr
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(res.Body)
-
 	if isActions {
 		actions.AddMask(accessToken.Token)
 
