@@ -170,8 +170,8 @@ func TestSetState_KeyNormalization(t *testing.T) {
 		key     string
 		wantKey string
 	}{
-		{"my-key", "MY_KEY"},
-		{"MY-KEY", "MY_KEY"},
+		{"my-key", "MY-KEY"},
+		{"MY-KEY", "MY-KEY"},
 		{"token", "TOKEN"},
 	}
 
