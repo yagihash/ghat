@@ -70,7 +70,7 @@ func newApp(appID string, signer signerIface, baseURL string) *App {
 //
 // repositories is an optional list of repository names to scope the token to.
 // Pass nil to grant access to all repositories the installation can access.
-func (a *App) GetGitHubAppToken(ctx context.Context, owner string, permissions map[string]string, repositories []string) (string, error) {
+func (a *App) CreateGitHubAppToken(ctx context.Context, owner string, permissions map[string]string, repositories []string) (string, error) {
 	signedJWT, err := jwt.Build(ctx, a.signer, a.appID, time.Now())
 	if err != nil {
 		return "", err
