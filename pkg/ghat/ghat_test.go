@@ -43,7 +43,7 @@ func jsonResponse(w http.ResponseWriter, statusCode int, body string) {
 	_, _ = io.WriteString(w, body)
 }
 
-func TestNewApp_DefaultBaseURL(t *testing.T) {
+func TestNew_DefaultBaseURL(t *testing.T) {
 	s := &mockSigner{signFn: func(ctx context.Context, data []byte) ([]byte, error) { return fakeSig, nil }}
 	app := newApp("123", s, "")
 	if app.baseURL != "https://api.github.com" {
@@ -51,7 +51,7 @@ func TestNewApp_DefaultBaseURL(t *testing.T) {
 	}
 }
 
-func TestNewApp_CustomBaseURL(t *testing.T) {
+func TestNew_CustomBaseURL(t *testing.T) {
 	s := &mockSigner{signFn: func(ctx context.Context, data []byte) ([]byte, error) { return fakeSig, nil }}
 	app := newApp("123", s, "https://github.example.com/api/v3")
 	if app.baseURL != "https://github.example.com/api/v3" {
@@ -59,7 +59,7 @@ func TestNewApp_CustomBaseURL(t *testing.T) {
 	}
 }
 
-func TestApp_SignJWT(t *testing.T) {
+func TestApp_BuildGitHubAppJWT(t *testing.T) {
 	tests := []struct {
 		name    string
 		signer  *mockSigner
@@ -80,7 +80,7 @@ func TestApp_SignJWT(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app := newApp("12345", tt.signer, "")
-			got, err := app.SignJWT(context.Background())
+			got, err := app.BuildGitHubAppJWT(context.Background())
 
 			if tt.wantErr {
 				if err == nil {
@@ -99,7 +99,7 @@ func TestApp_SignJWT(t *testing.T) {
 	}
 }
 
-func TestApp_IssueToken(t *testing.T) {
+func TestApp_GetGitHubAppToken(t *testing.T) {
 	tests := []struct {
 		name        string
 		signer      *mockSigner
@@ -199,7 +199,7 @@ func TestApp_IssueToken(t *testing.T) {
 			defer srv.Close()
 
 			app := newApp("12345", tt.signer, srv.URL)
-			got, err := app.IssueToken(context.Background(), tt.owner, tt.permissions, tt.repos)
+			got, err := app.GetGitHubAppToken(context.Background(), tt.owner, tt.permissions, tt.repos)
 
 			if tt.wantErr {
 				if err == nil {
@@ -217,7 +217,7 @@ func TestApp_IssueToken(t *testing.T) {
 	}
 }
 
-func TestApp_RevokeToken(t *testing.T) {
+func TestApp_RevokeGitHubAppToken(t *testing.T) {
 	tests := []struct {
 		name    string
 		handler http.HandlerFunc
@@ -263,9 +263,9 @@ func TestApp_RevokeToken(t *testing.T) {
 			srv := httptest.NewServer(tt.handler)
 			defer srv.Close()
 
-			// RevokeToken only needs baseURL and token; signer is irrelevant.
+			// RevokeGitHubAppToken only needs baseURL and token; signer is irrelevant.
 			app := newApp("12345", successfulSigner(), srv.URL)
-			err := app.RevokeToken(context.Background(), tt.token)
+			err := app.RevokeGitHubAppToken(context.Background(), tt.token)
 
 			if tt.wantErr {
 				if err == nil {

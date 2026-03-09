@@ -7,11 +7,11 @@
 //	if err != nil { ... }
 //	defer signer.Close()
 //
-//	app := ghat.NewApp(appID, signer, "")
-//	token, err := app.IssueToken(ctx, owner, nil, nil)
+//	app := ghat.New(appID, signer, "")
+//	token, err := app.GetGitHubAppToken(ctx, owner, nil, nil)
 //	if err != nil { ... }
 //	// use token ...
-//	if err := app.RevokeToken(ctx, token); err != nil { ... }
+//	if err := app.RevokeGitHubAppToken(ctx, token); err != nil { ... }
 package ghat
 
 import (
@@ -35,10 +35,10 @@ type App struct {
 	signer  signerIface
 }
 
-// NewApp constructs an App.
+// New constructs an App.
 // signer must be obtained from NewSigner.
 // baseURL is the GitHub API base URL; pass "" to use "https://api.github.com".
-func NewApp(appID string, signer *Signer, baseURL string) *App {
+func New(appID string, signer *Signer, baseURL string) *App {
 	if baseURL == "" {
 		baseURL = "https://api.github.com"
 	}
@@ -61,13 +61,13 @@ func newApp(appID string, signer signerIface, baseURL string) *App {
 	}
 }
 
-// SignJWT creates a signed GitHub App JWT using the KMS-backed signer.
+// BuildGitHubAppJWT creates a signed GitHub App JWT using the KMS-backed signer.
 // This satisfies requirement 2: JWT signing with a KMS-stored private key.
-func (a *App) SignJWT(ctx context.Context) (string, error) {
+func (a *App) BuildGitHubAppJWT(ctx context.Context) (string, error) {
 	return jwt.Build(ctx, a.signer, a.appID, time.Now())
 }
 
-// IssueToken generates a signed JWT, resolves the GitHub App installation for
+// GetGitHubAppToken generates a signed JWT, resolves the GitHub App installation for
 // the given owner, and returns an installation access token.
 // This satisfies requirement 3: GitHub App Token issuance.
 //
@@ -76,7 +76,7 @@ func (a *App) SignJWT(ctx context.Context) (string, error) {
 //
 // repositories is an optional list of repository names to scope the token to.
 // Pass nil to grant access to all repositories the installation can access.
-func (a *App) IssueToken(ctx context.Context, owner string, permissions map[string]string, repositories []string) (string, error) {
+func (a *App) GetGitHubAppToken(ctx context.Context, owner string, permissions map[string]string, repositories []string) (string, error) {
 	signedJWT, err := jwt.Build(ctx, a.signer, a.appID, time.Now())
 	if err != nil {
 		return "", err
@@ -97,11 +97,11 @@ func (a *App) IssueToken(ctx context.Context, owner string, permissions map[stri
 	return accessToken.Token, nil
 }
 
-// RevokeToken revokes an installation access token.
+// RevokeGitHubAppToken revokes an installation access token.
 // This satisfies requirement 4: GitHub App Token revocation.
 //
-// token is the value previously returned by IssueToken.
-func (a *App) RevokeToken(ctx context.Context, token string) error {
+// token is the value previously returned by GetGitHubAppToken.
+func (a *App) RevokeGitHubAppToken(ctx context.Context, token string) error {
 	c := client.New(a.baseURL, token)
 	return c.DeleteInstallationAccessToken()
 }
