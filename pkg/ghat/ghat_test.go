@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 )
 
@@ -56,46 +55,6 @@ func TestNew_CustomBaseURL(t *testing.T) {
 	app := newApp("123", s, "https://github.example.com/api/v3")
 	if app.baseURL != "https://github.example.com/api/v3" {
 		t.Errorf("baseURL = %q, want %q", app.baseURL, "https://github.example.com/api/v3")
-	}
-}
-
-func TestApp_BuildGitHubAppJWT(t *testing.T) {
-	tests := []struct {
-		name    string
-		signer  *mockSigner
-		wantErr bool
-	}{
-		{
-			name:    "success produces dot-separated JWT",
-			signer:  successfulSigner(),
-			wantErr: false,
-		},
-		{
-			name:    "KMS sign error is propagated",
-			signer:  failingSigner("KMS unavailable"),
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			app := newApp("12345", tt.signer, "")
-			got, err := app.BuildGitHubAppJWT(context.Background())
-
-			if tt.wantErr {
-				if err == nil {
-					t.Error("expected error but got nil")
-				}
-				return
-			}
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-			parts := strings.Split(got, ".")
-			if len(parts) != 3 {
-				t.Errorf("expected 3-part JWT, got %d parts: %q", len(parts), got)
-			}
-		})
 	}
 }
 

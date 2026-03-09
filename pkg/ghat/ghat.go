@@ -61,12 +61,6 @@ func newApp(appID string, signer signerIface, baseURL string) *App {
 	}
 }
 
-// BuildGitHubAppJWT creates a signed GitHub App JWT using the KMS-backed signer.
-// This satisfies requirement 2: JWT signing with a KMS-stored private key.
-func (a *App) BuildGitHubAppJWT(ctx context.Context) (string, error) {
-	return jwt.Build(ctx, a.signer, a.appID, time.Now())
-}
-
 // GetGitHubAppToken generates a signed JWT, resolves the GitHub App installation for
 // the given owner, and returns an installation access token.
 // This satisfies requirement 3: GitHub App Token issuance.
