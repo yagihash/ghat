@@ -8,7 +8,7 @@
 //	defer signer.Close()
 //
 //	app := ghat.New(appID, signer, "")
-//	token, err := app.GetGitHubAppToken(ctx, owner, nil, nil)
+//	token, err := app.CreateGitHubAppToken(ctx, owner, nil, nil)
 //	if err != nil { ... }
 //	// use token ...
 //	if err := app.RevokeGitHubAppToken(ctx, token); err != nil { ... }
@@ -61,7 +61,7 @@ func newApp(appID string, signer signerIface, baseURL string) *App {
 	}
 }
 
-// GetGitHubAppToken generates a signed JWT, resolves the GitHub App installation for
+// CreateGitHubAppToken generates a signed JWT, resolves the GitHub App installation for
 // the given owner, and returns an installation access token.
 // This satisfies requirement 3: GitHub App Token issuance.
 //
@@ -94,7 +94,7 @@ func (a *App) CreateGitHubAppToken(ctx context.Context, owner string, permission
 // RevokeGitHubAppToken revokes an installation access token.
 // This satisfies requirement 4: GitHub App Token revocation.
 //
-// token is the value previously returned by GetGitHubAppToken.
+// token is the value previously returned by CreateGitHubAppToken.
 func (a *App) RevokeGitHubAppToken(ctx context.Context, token string) error {
 	c := client.New(a.baseURL, token)
 	return c.DeleteInstallationAccessToken()

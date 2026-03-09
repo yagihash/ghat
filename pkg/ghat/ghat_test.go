@@ -58,7 +58,7 @@ func TestNew_CustomBaseURL(t *testing.T) {
 	}
 }
 
-func TestApp_GetGitHubAppToken(t *testing.T) {
+func TestApp_CreateGitHubAppToken(t *testing.T) {
 	tests := []struct {
 		name        string
 		signer      *mockSigner
@@ -158,7 +158,7 @@ func TestApp_GetGitHubAppToken(t *testing.T) {
 			defer srv.Close()
 
 			app := newApp("12345", tt.signer, srv.URL)
-			got, err := app.GetGitHubAppToken(context.Background(), tt.owner, tt.permissions, tt.repos)
+			got, err := app.CreateGitHubAppToken(context.Background(), tt.owner, tt.permissions, tt.repos)
 
 			if tt.wantErr {
 				if err == nil {
