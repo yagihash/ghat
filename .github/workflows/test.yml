@@ -3,7 +3,7 @@ name: "Go test"
 on:
   pull_request:
   push:
-    paths:
+    branches:
       - "main"
 
 jobs:
