@@ -4,6 +4,8 @@
 
 **ghat** is a GitHub Action (and standalone CLI tool) that generates GitHub App installation access tokens by signing JWTs with Google Cloud KMS rather than storing private keys locally. This improves security for CI/CD pipelines by leveraging Workload Identity Federation and hardware-backed key storage.
 
+It also exposes a public Go library (`pkg/ghat`) that external Go modules can import to perform the same operations programmatically.
+
 **Module path:** `github.com/yagihash/ghat/v2`
 **Language:** Go 1.26+
 **License:** MIT
@@ -15,26 +17,36 @@
 ```
 ghat/
 ├── cmd/
-│   ├── ghat/main.go       # Main action: generates and outputs GitHub App token
-│   └── post/main.go       # Post-action cleanup: revokes the token after use
-├── client/
-│   └── client.go          # GitHub API client (installation, token endpoints)
-├── actions/
-│   ├── actions.go         # GitHub Actions workflow commands (output, state, masking, logging)
-│   └── actions_test.go
-├── input/
-│   ├── input.go           # Config struct + envconfig-based loader
-│   └── input_test.go
-├── kms/
-│   ├── kms.go             # Google Cloud KMS signer (interface + implementation)
-│   └── kms_test.go
+│   ├── ghat/main.go           # Main action: generates and outputs GitHub App token
+│   └── post/main.go           # Post-action cleanup: revokes the token after use
+├── internal/
+│   ├── actions/
+│   │   ├── actions.go         # GitHub Actions workflow commands (output, state, masking, logging)
+│   │   └── actions_test.go
+│   ├── client/
+│   │   ├── client.go          # GitHub API client (installation, token endpoints)
+│   │   └── client_test.go
+│   ├── input/
+│   │   ├── input.go           # Config struct + envconfig-based loader
+│   │   └── input_test.go
+│   ├── jwt/
+│   │   ├── jwt.go             # GitHub App JWT construction and signing
+│   │   └── jwt_test.go
+│   └── kms/
+│       ├── kms.go             # Google Cloud KMS signer (interface + implementation)
+│       └── kms_test.go
+├── pkg/
+│   └── ghat/
+│       ├── ghat.go            # Public API: App struct (IssueToken, RevokeToken, SignJWT)
+│       ├── signer.go          # Public API: Signer type (NewSigner, Close)
+│       └── ghat_test.go
 ├── scripts/
 │   └── update-permissions.sh  # Syncs permission list in action.yml from GitHub API
 ├── .github/
-│   └── workflows/         # CI/CD pipelines (test, edge build, release, linting)
-├── action.yml             # GitHub Action metadata (inputs, outputs, Docker entrypoint)
-├── Dockerfile             # Multi-stage build: golang:1.26-alpine → alpine:3.23.3
-├── Taskfile.yml           # Task runner (build, test, coverage)
+│   └── workflows/             # CI/CD pipelines (test, edge build, release, linting)
+├── action.yml                 # GitHub Action metadata (inputs, outputs, Docker entrypoint)
+├── Dockerfile                 # Multi-stage build: golang:1.26-alpine → alpine:3.23.3
+├── Taskfile.yml               # Task runner (build, test, coverage)
 ├── go.mod / go.sum
 ├── renovate.json
 └── README.md
@@ -80,47 +92,92 @@ The Dockerfile uses a two-stage build:
 
 ### Package Structure
 
-Each package has a single, focused responsibility:
+The repository uses two package hierarchies with different access rules:
+
+**`internal/`** — implementation packages, not importable by external modules:
 
 | Package | Responsibility |
 |---------|---------------|
-| `cmd/ghat` | Entry point: orchestrates config, KMS, JWT, GitHub API |
-| `cmd/post` | Entry point: revokes token post-workflow |
-| `client` | GitHub API HTTP client |
-| `input` | Environment variable parsing into `Config` struct |
-| `kms` | KMS signing abstraction (interface + real implementation) |
-| `actions` | GitHub Actions workflow command helpers |
+| `internal/actions` | GitHub Actions workflow command helpers (masking, output, state, logging) |
+| `internal/client` | GitHub API HTTP client |
+| `internal/input` | Environment variable parsing into `Config` struct |
+| `internal/jwt` | GitHub App JWT construction and signing |
+| `internal/kms` | KMS signing abstraction (interface + real implementation) |
+
+**`pkg/`** — public API, importable by external Go modules:
+
+| Package | Responsibility |
+|---------|---------------|
+| `pkg/ghat` | Public API: KMS signer, JWT signing, token issuance, token revocation |
+
+**`cmd/`** — entry points:
+
+| Package | Responsibility |
+|---------|---------------|
+| `cmd/ghat` | Orchestrates config, KMS, JWT, GitHub API; outputs token |
+| `cmd/post` | Revokes token post-workflow |
+
+`cmd/` packages import from `internal/` only. `pkg/ghat` imports from `internal/` and wraps them in a clean public API.
+
+### Public API (`pkg/ghat`)
+
+External Go consumers import `github.com/yagihash/ghat/v2/pkg/ghat`:
+
+```go
+// 1. Create a KMS-backed signer
+signer, err := ghat.NewSigner(ctx, projectID, location, keyRingID, keyID, version)
+defer signer.Close()
+
+// 2. Create an App
+app := ghat.NewApp(appID, signer, "") // "" defaults to https://api.github.com
+
+// 3. Sign a JWT (optional; IssueToken does this internally)
+jwt, err := app.SignJWT(ctx)
+
+// 4. Issue a GitHub App installation access token
+token, err := app.IssueToken(ctx, owner, permissions, repositories)
+
+// 5. Revoke the token when done
+err = app.RevokeToken(ctx, token)
+```
 
 ### Naming Conventions
 
-- Package names: short, lowercase (`input`, `kms`, `client`, `actions`)
+- Package names: short, lowercase (`input`, `kms`, `client`, `actions`, `jwt`, `ghat`)
 - Exported identifiers: `PascalCase` (`NewSigner`, `SetOutput`, `Config`)
-- Unexported identifiers: `camelCase` (`newRequest`, `writeKeyValue`)
+- Unexported identifiers: `camelCase` (`newRequest`, `writeKeyValue`, `newApp`)
 - Environment variable constants: `UPPER_SNAKE_CASE` (`EnvGitHubOutput`, `EnvGitHubState`)
 
 ### Error Handling
 
 - Always return explicit `error` values; never swallow errors silently
 - Wrap errors with context using `fmt.Errorf("context: %w", err)`
-- In `main.go`, errors are printed to stderr via `log.Fatal`
+- In `main.go`, errors are printed to stderr via `actions.LogError` then `os.Exit(1)`
 
 ### Testing Patterns
 
-- **Table-driven tests** for all non-trivial logic (see `input_test.go`, `kms_test.go`)
-- **Mock implementations** of interfaces for external dependencies (see `mockKMSClient` in `kms_test.go`)
-- **Temporary directories** for any tests involving file I/O (see `actions_test.go`)
+- **Table-driven tests** for all non-trivial logic (see `internal/input/input_test.go`, `internal/kms/kms_test.go`)
+- **Mock implementations** of interfaces for external dependencies (see `mockKMSClient` in `internal/kms/kms_test.go`)
+- **Temporary directories** for any tests involving file I/O (see `internal/actions/actions_test.go`)
 - **Environment variable setup/teardown** using `t.Setenv()` so tests don't leak state
+- **`httptest.NewServer`** for GitHub API calls in `pkg/ghat/ghat_test.go`
 - Tests live alongside their implementation files (`*_test.go`)
+- `pkg/ghat` tests use `package ghat` (whitebox) to inject mock signers via the unexported `signerIface`
 
 ### Dependency Injection via Interfaces
 
-External dependencies (KMS client) are abstracted behind interfaces to allow mocking in tests:
+External dependencies (KMS client, JWT signer) are abstracted behind interfaces to allow mocking in tests:
 
 ```go
-// kms/kms.go
+// internal/kms/kms.go
 type KMSClient interface {
     AsymmetricSign(ctx context.Context, ...) (*kmspb.AsymmetricSignResponse, error)
     Close() error
+}
+
+// internal/jwt/jwt.go
+type Signer interface {
+    Sign(ctx context.Context, data []byte) ([]byte, error)
 }
 ```
 
@@ -208,15 +265,23 @@ Run `scripts/update-permissions.sh` to regenerate the permissions section in `ac
 
 ### Adding a New Input
 
-1. Add the field to `input.Config` in `input/input.go` with appropriate `envconfig` tags
+1. Add the field to `input.Config` in `internal/input/input.go` with appropriate `envconfig` tags
 2. Add a corresponding input definition to `action.yml`
-3. Write table-driven tests in `input/input_test.go`
+3. Write table-driven tests in `internal/input/input_test.go`
 
 ### Adding a New GitHub API Call
 
-1. Add the method to `client/client.go`
+1. Add the method to `internal/client/client.go`
 2. Keep the HTTP client reusable (10s timeout, standard headers already configured)
 3. Follow the existing pattern: build request → set headers → execute → decode JSON response
+4. If the call should also be available in the public API, expose it via `pkg/ghat/ghat.go`
+
+### Extending the Public API (`pkg/ghat`)
+
+1. Add the new operation to `pkg/ghat/ghat.go` (or a new file in `pkg/ghat/`)
+2. Use `signerIface` for any signer dependency injection (keeps `internal/kms` out of public signatures)
+3. Write whitebox tests in `pkg/ghat/ghat_test.go` using `mockSigner` and `httptest.NewServer`
+4. Do not expose `internal/` types in any exported function signature
 
 ---
 

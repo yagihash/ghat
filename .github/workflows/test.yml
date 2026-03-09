@@ -25,3 +25,8 @@ jobs:
       - name: go test
         run: |
           go test -v -cover -race ./...
+
+      - name: go build
+        run: |
+          CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -trimpath -o /dev/null ./cmd/ghat
+          CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -trimpath -o /dev/null ./cmd/post

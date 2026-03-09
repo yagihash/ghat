@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
-	"github.com/yagihash/ghat/v2/actions"
-	"github.com/yagihash/ghat/v2/client"
-	"github.com/yagihash/ghat/v2/input"
+	"github.com/yagihash/ghat/v2/internal/actions"
+	"github.com/yagihash/ghat/v2/internal/client"
+	"github.com/yagihash/ghat/v2/internal/input"
 )
 
 const (
