@@ -2,30 +2,20 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"os"
 	"time"
 
-	"github.com/yagihash/ghat/v2/actions"
-	"github.com/yagihash/ghat/v2/client"
-	"github.com/yagihash/ghat/v2/input"
-	"github.com/yagihash/ghat/v2/kms"
+	"github.com/yagihash/ghat/v2/internal/actions"
+	"github.com/yagihash/ghat/v2/internal/client"
+	"github.com/yagihash/ghat/v2/internal/input"
+	"github.com/yagihash/ghat/v2/internal/jwt"
+	"github.com/yagihash/ghat/v2/internal/kms"
 )
 
 const (
 	exitOK = iota
 	exitErr
-)
-
-const (
-	// jwtIssuedAtSkew adjusts the iat claim into the past to account for
-	// clock skew between the local machine and GitHub's servers.
-	jwtIssuedAtSkew = -60 * time.Second
-	// jwtExpiry is the duration for which the JWT is valid.
-	// GitHub Apps require JWTs to expire within 10 minutes.
-	jwtExpiry = 600 * time.Second
 )
 
 var isActions = os.Getenv("GITHUB_ACTIONS") == "true"
@@ -54,47 +44,11 @@ func realMain() int {
 		}
 	}(signer)
 
-	now := time.Now()
-	iat := now.Add(jwtIssuedAtSkew).Unix()
-	exp := now.Add(jwtExpiry).Unix()
-
-	header := map[string]any{
-		"typ": "token",
-		"alg": "RS256",
-	}
-
-	payload := map[string]any{
-		"iat": iat,
-		"exp": exp,
-		"iss": args.AppID,
-	}
-
-	headerJSON, err := json.Marshal(header)
+	signedJWT, err := jwt.Build(ctx, signer, args.AppID, time.Now())
 	if err != nil {
-		actions.LogError("failed to marshal jwt header: " + err.Error())
+		actions.LogError("failed to build jwt: " + err.Error())
 		return exitErr
 	}
-
-	payloadJSON, err := json.Marshal(payload)
-	if err != nil {
-		actions.LogError("failed to marshal jwt payload: " + err.Error())
-		return exitErr
-	}
-
-	headerBase64url := base64.RawURLEncoding.EncodeToString(headerJSON)
-	payloadBase64url := base64.RawURLEncoding.EncodeToString(payloadJSON)
-
-	unsignedJWT := fmt.Sprintf("%s.%s", headerBase64url, payloadBase64url)
-
-	sig, err := signer.Sign(ctx, []byte(unsignedJWT))
-	if err != nil {
-		actions.LogError("failed to sign jwt: " + err.Error())
-		return exitErr
-	}
-
-	signatureBase64url := base64.RawURLEncoding.EncodeToString(sig)
-
-	signedJWT := fmt.Sprintf("%s.%s", unsignedJWT, signatureBase64url)
 
 	c := client.New(args.BaseURL, signedJWT)
 
