@@ -1,0 +1,21 @@
+[tools]
+go = "1.26.1"
+
+[tasks.build]
+description = "Build both binaries to dist/"
+run = [
+  "go build -trimpath -o dist/ghat ./cmd/ghat/main.go",
+  "go build -trimpath -o dist/post ./cmd/post/main.go",
+]
+
+[tasks.test]
+description = "Run unit tests with coverage and race detection"
+run = "go test -v -cover -race ./..."
+
+[tasks.coverage]
+description = "Generate HTML coverage report and open it"
+run = [
+  "go test -v -cover -race ./... -coverprofile=/tmp/cover.out",
+  "go tool cover -html=/tmp/cover.out -o /tmp/cover.html",
+  "open /tmp/cover.html",
+]
