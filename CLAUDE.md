@@ -46,7 +46,7 @@ ghat/
 │   └── workflows/             # CI/CD pipelines (test, edge build, release, linting)
 ├── action.yml                 # GitHub Action metadata (inputs, outputs, Docker entrypoint)
 ├── Dockerfile                 # Multi-stage build: golang:1.26-alpine → alpine:3.23.3
-├── Taskfile.yml               # Task runner (build, test, coverage)
+├── mise.toml                  # Tool versions (Go) and task runner (build, test, coverage)
 ├── go.mod / go.sum
 ├── renovate.json
 └── README.md
@@ -58,22 +58,21 @@ ghat/
 
 ### Prerequisites
 
-- Go 1.25+
-- [Taskfile](https://taskfile.dev) (`task` CLI)
+- [mise](https://mise.jdx.dev/) (`mise install` to activate Go 1.26.1)
 - Docker (for building the container image)
 
 ### Common Tasks
 
 ```bash
 # Run unit tests (verbose, with coverage and race detection)
-task test
+mise run test
 # equivalent: go test -v -cover -race ./...
 
 # Build both binaries to dist/
-task
+mise run build
 
 # Generate HTML coverage report
-task coverage
+mise run coverage
 ```
 
 ### Building the Docker Image
