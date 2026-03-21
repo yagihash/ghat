@@ -53,23 +53,42 @@ jobs:
       - name: Create Pull Request with GitHub CLI
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
-        run: |          
+        run: |
           BRANCH_NAME="feature/sync-permissions-$(date +%Y%m%d)"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          
+
           # 変更がある場合のみ PR を作成
           if [[ -n $(git status --porcelain action.yml) ]]; then
             git checkout -b "$BRANCH_NAME"
             git add action.yml
             git commit -m "chore: sync GitHub App permissions"
             git push origin "$BRANCH_NAME" --force
-            
-            gh pr create \
+
+            PR_URL=$(gh pr create \
               --title "🤖 Sync GitHub App Permissions" \
               --body "This PR updates \`action.yml\` inputs and args based on the latest GitHub App permissions from octokit/openapi." \
               --base main \
-              --head "$BRANCH_NAME" || echo "PR already exists or was updated."
+              --head "$BRANCH_NAME" 2>&1 || gh pr view "$BRANCH_NAME" --json url --jq '.url')
+
+            {
+              echo "## Sync GitHub App Permissions"
+              echo ""
+              echo "✅ **Changes detected.** A pull request has been created or updated."
+              echo ""
+              echo "**Pull Request:** $PR_URL"
+              echo ""
+              echo "### Diff"
+              echo '```diff'
+              git diff HEAD~1 HEAD -- action.yml
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
           else
             echo "No changes detected in action.yml"
+
+            {
+              echo "## Sync GitHub App Permissions"
+              echo ""
+              echo "☑️ **No changes detected.** \`action.yml\` is already up to date."
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
