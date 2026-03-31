@@ -8,7 +8,9 @@ on:
 jobs:
   pinact:
     runs-on: ubuntu-latest
-    environment: main
+    environment:
+      name: main
+      deployment: false
     timeout-minutes: 15
     permissions:
       contents: read
