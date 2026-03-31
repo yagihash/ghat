@@ -1,0 +1,6 @@
+# Docker entrypoints (/ghat, /post) only exist inside the container, not locally.
+# Suppress false positives for all workflows using `uses: ./`.
+paths:
+  .github/workflows/**/*.yml:
+    ignore:
+      - 'file "/(ghat|post)" does not exist'
