@@ -132,6 +132,12 @@ jobs:
             rm dist/ghat
           done
 
+
+      - name: Generate license documentation
+        run: |
+          go install github.com/google/go-licenses@v1.6.0
+          go-licenses save ./cmd/ghat --save_path=dist/licenses
+          tar -czf dist/licenses.tar.gz -C dist licenses
           sha256sum dist/*.tar.gz > dist/checksums.txt
 
       - name: Create GitHub Release
