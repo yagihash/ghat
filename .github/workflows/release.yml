@@ -44,11 +44,11 @@ jobs:
           TAG="$GITHUB_REF_NAME"
           MAJOR="${TAG%%.*}"
           IMAGE_PATH="$REGISTRY/$REPOSITORY"
-          
+
           docker build -t "$IMAGE_PATH:$TAG" -t "$IMAGE_PATH:$MAJOR" .
           docker push "$IMAGE_PATH:$TAG"
           docker push "$IMAGE_PATH:$MAJOR"
-          
+
           DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE_PATH:$TAG")
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
 
@@ -87,15 +87,15 @@ jobs:
         run: |
           TAG="$GITHUB_REF_NAME"
           MAJOR="${TAG%%.*}"
-          
+
           sed -i "s|image: \"docker://.*\"|image: \"docker://$DIGEST\"|g" action.yml
-          
+
           git add action.yml
           git commit -m "chore: update action.yml to use image digest for $TAG [skip ci]" || echo "No changes to commit"
-          
+
           git tag -fa "$TAG" -m "Release $TAG"
           git tag -fa "$MAJOR" -m "Update $MAJOR to $TAG"
-          
+
           git push origin "$TAG" --force
           git push origin "$MAJOR" --force
           git push origin HEAD:refs/heads/main
@@ -156,7 +156,7 @@ jobs:
             gh release create "$TAG" \
               --title "$TAG" \
               --generate-notes \
-              --previous-tag "$PREV_TAG" \
+              --notes-start-tag "$PREV_TAG" \
               --verify-tag \
               dist/*.tar.gz dist/checksums.txt
           else
