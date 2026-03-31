@@ -21,19 +21,23 @@ jobs:
 
       - name: Install ghalint
         run: |
-          gh release download -R suzuki-shunsuke/ghalint v1.5.5 -p ghalint_1.5.5_linux_amd64.tar.gz
-          gh attestation verify ghalint_1.5.5_linux_amd64.tar.gz \
+          # renovate: datasource=github-releases depName=suzuki-shunsuke/ghalint
+          version=v1.5.5
+          gh release download -R suzuki-shunsuke/ghalint "${version}" -p "ghalint_${version#v}_linux_amd64.tar.gz"
+          gh attestation verify "ghalint_${version#v}_linux_amd64.tar.gz" \
             -R suzuki-shunsuke/ghalint \
             --signer-workflow suzuki-shunsuke/go-release-workflow/.github/workflows/release.yaml
-          tar xzf ghalint_1.5.5_linux_amd64.tar.gz ghalint
+          tar xzf "ghalint_${version#v}_linux_amd64.tar.gz" ghalint
         env:
           GH_TOKEN: ${{ github.token }}
 
       - name: Install actionlint
         run: |
-          gh release download -R rhysd/actionlint v1.7.12 -p actionlint_1.7.12_linux_amd64.tar.gz
-          gh attestation verify actionlint_1.7.12_linux_amd64.tar.gz --repo rhysd/actionlint
-          tar xzf actionlint_1.7.12_linux_amd64.tar.gz actionlint
+          # renovate: datasource=github-releases depName=rhysd/actionlint
+          version=v1.7.12
+          gh release download -R rhysd/actionlint "${version}" -p "actionlint_${version#v}_linux_amd64.tar.gz"
+          gh attestation verify "actionlint_${version#v}_linux_amd64.tar.gz" --repo rhysd/actionlint
+          tar xzf "actionlint_${version#v}_linux_amd64.tar.gz" actionlint
         env:
           GH_TOKEN: ${{ github.token }}
 
