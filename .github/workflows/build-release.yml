@@ -1,0 +1,72 @@
+name: Build Docker Image for Release
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    if: startsWith(github.head_ref, 'tagpr-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.head_ref }}
+          persist-credentials: false
+
+      - name: Setup git credentials
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh auth setup-git
+
+      - name: Login to GHCR
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        id: docker
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          IMAGE_PATH="$REGISTRY/$REPOSITORY"
+          TEMP_TAG="sha-$SHA"
+
+          docker build -t "$IMAGE_PATH:$TEMP_TAG" .
+          docker push "$IMAGE_PATH:$TEMP_TAG"
+
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE_PATH:$TEMP_TAG")
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+
+      - name: Update action.yml with image digest
+        env:
+          DIGEST: ${{ steps.docker.outputs.digest }}
+        run: |
+          sed -i "s|image: \"docker://.*\"|image: \"docker://$DIGEST\"|g" action.yml
+
+      - name: Commit and push
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add action.yml
+          git commit -m "chore: pin Docker image digest [skip ci]" || echo "No changes to commit"
+          git push origin "HEAD:$HEAD_REF"
