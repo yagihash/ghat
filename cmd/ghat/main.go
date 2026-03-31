@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/yagihash/ghat/v2/internal/actions"
@@ -56,6 +57,12 @@ func realMain() int {
 	if err != nil {
 		actions.LogError("failed to get installation: " + err.Error())
 		return exitErr
+	}
+
+	if len(args.Repositories) == 0 {
+		actions.LogNotice("Token will be scoped to all repositories accessible by the GitHub App installation")
+	} else {
+		actions.LogNotice(fmt.Sprintf("Token will be scoped to %d repositories: %s", len(args.Repositories), strings.Join(args.Repositories, ", ")))
 	}
 
 	accessToken, err := c.GetInstallationAccessToken(installation.ID, args.Permissions, args.Repositories)
