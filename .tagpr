@@ -1,2 +1,5 @@
 [tagpr]
-versionFile = "version.txt"
+releaseBranch = main
+vPrefix = true
+release = false
+changelog = true
