@@ -98,6 +98,7 @@ jobs:
           
           git push origin "$TAG" --force
           git push origin "$MAJOR" --force
+          git push origin HEAD:refs/heads/main
 
       - name: Setup Go
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
