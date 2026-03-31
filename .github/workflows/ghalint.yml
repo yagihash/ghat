@@ -31,9 +31,9 @@ jobs:
 
       - name: Install actionlint
         run: |
-          curl -L -o actionlint.tar.gz 'https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz'
-          gh attestation verify actionlint.tar.gz --repo rhysd/actionlint
-          tar xzf actionlint.tar.gz actionlint
+          gh release download -R rhysd/actionlint v1.7.12 -p actionlint_1.7.12_linux_amd64.tar.gz
+          gh attestation verify actionlint_1.7.12_linux_amd64.tar.gz --repo rhysd/actionlint
+          tar xzf actionlint_1.7.12_linux_amd64.tar.gz actionlint
         env:
           GH_TOKEN: ${{ github.token }}
 
