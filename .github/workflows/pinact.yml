@@ -59,6 +59,6 @@ jobs:
           ./pinact run README.md -u
 
           git add README.md
-          git commit -m "chore: update README.md to refer latest version" || echo "No changes to commit"
+          git commit -m "chore: update README.md to refer latest version [skip ci]" || echo "No changes to commit"
 
           git push origin main
