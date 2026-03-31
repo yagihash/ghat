@@ -194,6 +194,6 @@ outputs:
 
 runs:
   using: "docker"
-  image: "docker://ghcr.io/yagihash/ghat@sha256:9a9c9f3058e90ce92ad77edafc7118f33e01335d9cc834324df31f79c7995111"
+  image: "docker://ghcr.io/yagihash/ghat@sha256:9ad26ff877631c68a49dab43351d7418666595dadf64e0e398383a93f83a0352"
   entrypoint: "/ghat"
   post-entrypoint: "/post"
