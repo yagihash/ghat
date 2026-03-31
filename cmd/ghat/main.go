@@ -65,6 +65,16 @@ func realMain() int {
 		actions.LogNotice(fmt.Sprintf("Token will be scoped to %d repositories: %s", len(args.Repositories), strings.Join(args.Repositories, ", ")))
 	}
 
+	if len(args.Permissions) == 0 {
+		actions.LogNotice("Token will be granted all permissions of the GitHub App installation")
+	} else {
+		perms := make([]string, 0, len(args.Permissions))
+		for k, v := range args.Permissions {
+			perms = append(perms, k+":"+v)
+		}
+		actions.LogNotice(fmt.Sprintf("Token will be granted %d permissions: %s", len(args.Permissions), strings.Join(perms, ", ")))
+	}
+
 	accessToken, err := c.GetInstallationAccessToken(installation.ID, args.Permissions, args.Repositories)
 	if err != nil {
 		actions.LogError("failed to get access token: " + err.Error())
