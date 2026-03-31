@@ -1,5 +1,11 @@
 # CLAUDE.md — AI Assistant Guide for ghat
 
+## Conventions for AI Assistants
+
+- Write all PR titles and descriptions in **English**
+
+---
+
 ## Project Overview
 
 **ghat** is a GitHub Action (and standalone CLI tool) that generates GitHub App installation access tokens by signing JWTs with Google Cloud KMS rather than storing private keys locally. This improves security for CI/CD pipelines by leveraging Workload Identity Federation and hardware-backed key storage.
