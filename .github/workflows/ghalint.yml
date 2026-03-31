@@ -12,6 +12,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+      attestations: read
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -20,13 +21,27 @@ jobs:
 
       - name: Install ghalint
         run: |
-          curl -L -o ghalint.tar.gz 'https://github.com/suzuki-shunsuke/ghalint/releases/download/v1.5.4/ghalint_1.5.4_linux_amd64.tar.gz'
-          tar xzf ghalint.tar.gz ghalint
+          gh release download -R suzuki-shunsuke/ghalint v1.5.5 -p ghalint_1.5.5_linux_amd64.tar.gz
+          gh attestation verify ghalint_1.5.5_linux_amd64.tar.gz \
+            -R suzuki-shunsuke/ghalint \
+            --signer-workflow suzuki-shunsuke/go-release-workflow/.github/workflows/release.yaml
+          tar xzf ghalint_1.5.5_linux_amd64.tar.gz ghalint
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Install actionlint
+        run: |
+          curl -L -o actionlint.tar.gz 'https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz'
+          gh attestation verify actionlint.tar.gz --repo rhysd/actionlint
+          tar xzf actionlint.tar.gz actionlint
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Run ghalint run
-        run: |
-          ./ghalint run
+        run: ./ghalint run
 
       - name: Run ghalint act
-        run: |
-          ./ghalint act
+        run: ./ghalint act
+
+      - name: Run actionlint
+        run: ./actionlint
