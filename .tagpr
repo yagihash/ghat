@@ -1,2 +1,4 @@
 [tagpr]
 versionFile = "version.txt"
+	vPrefix = true
+	releaseBranch = main
