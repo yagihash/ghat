@@ -42,17 +42,17 @@ func TestLoad_DefaultKeyVersion(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if i.KeyVersion != "1" {
-		t.Errorf("KeyVersion should be set to default value: %s", i.KeyVersion)
+	if i.KeyVersion != "" {
+		t.Errorf("KeyVersion should be empty string when not set (auto-detect): %s", i.KeyVersion)
 	}
 }
 
-// TestLoad_EmptyKeyVersion verifies that KeyVersion defaults to "1" even when
+// TestLoad_EmptyKeyVersion verifies that KeyVersion remains empty when
 // INPUT_KMS_KEY_VERSION is explicitly set to an empty string. This is a real
 // scenario in GitHub Actions: optional inputs with no default in action.yml
-// are passed as empty strings, not as unset variables. envconfig's default
-// tag only fires when the variable is completely absent (!ok), so the explicit
-// check `if c.KeyVersion == ""` in Load() is necessary and must not be removed.
+// are passed as empty strings, not as unset variables. An empty KeyVersion
+// signals to the KMS layer that the latest enabled version should be detected
+// automatically.
 func TestLoad_EmptyKeyVersion(t *testing.T) {
 	t.Setenv("INPUT_APP_ID", "12345")
 	t.Setenv("INPUT_OWNER", "owner")
@@ -71,8 +71,8 @@ func TestLoad_EmptyKeyVersion(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if i.KeyVersion != "1" {
-		t.Errorf("KeyVersion should be set to default value even when INPUT_KMS_KEY_VERSION is empty string, got: %q", i.KeyVersion)
+	if i.KeyVersion != "" {
+		t.Errorf("KeyVersion should remain empty string when INPUT_KMS_KEY_VERSION is empty string, got: %q", i.KeyVersion)
 	}
 }
 
