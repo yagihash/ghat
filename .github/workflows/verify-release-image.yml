@@ -1,0 +1,61 @@
+name: Verify action.yml image digest
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      packages: read
+
+    steps:
+      - name: Checkout repository
+        if: startsWith(github.head_ref, 'tagpr-')
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Login to GHCR
+        if: startsWith(github.head_ref, 'tagpr-')
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify action.yml digest
+        if: startsWith(github.head_ref, 'tagpr-')
+        env:
+          REGISTRY: ghcr.io
+          REPOSITORY: ${{ github.repository }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          BRANCH_TAG="${HEAD_REF//\//-}"
+          EXPECTED_TAG="$REGISTRY/$REPOSITORY:$BRANCH_TAG"
+          echo "Expecting image: $EXPECTED_TAG"
+
+          MANIFEST=$(docker manifest inspect --verbose "$EXPECTED_TAG" 2>/dev/null || true)
+          if [ -z "$MANIFEST" ]; then
+            echo "Image $EXPECTED_TAG not found. The build workflow may not have run yet."
+            exit 1
+          fi
+
+          MANIFEST_DIGEST=$(echo "$MANIFEST" | jq -r '.Descriptor.digest')
+          EXPECTED_DIGEST="$REGISTRY/$REPOSITORY@$MANIFEST_DIGEST"
+          ACTUAL_DIGEST=$(grep -oP 'ghcr\.io/[^ "]+' action.yml | head -1)
+
+          if [ "$ACTUAL_DIGEST" != "$EXPECTED_DIGEST" ]; then
+            echo "FAIL: action.yml digest mismatch"
+            echo "Expected: $EXPECTED_DIGEST"
+            echo "Actual:   $ACTUAL_DIGEST"
+            exit 1
+          fi
+          echo "OK: action.yml digest matches $EXPECTED_TAG"

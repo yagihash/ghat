@@ -1,36 +1,50 @@
 name: Build Docker Image for Release
 
 on:
-  pull_request:
-    types:
-      - opened
-      - synchronize
+  push:
     branches:
-      - main
+      - tagpr-from-*
 
 env:
   REGISTRY: ghcr.io
 
 jobs:
   build:
-    if: startsWith(github.head_ref, 'tagpr-')
+    if: "!startsWith(github.event.head_commit.message, 'chore: pin Docker image digest')"
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment:
+      name: main
+      deployment: false
     permissions:
       contents: write
       packages: write
+      id-token: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ github.head_ref }}
           persist-credentials: false
 
-      - name: Setup git credentials
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh auth setup-git
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - name: Create GitHub App Token
+        id: token
+        uses: ./
+        with:
+          app_id: ${{ secrets.BOT_GITHUB_APP_ID }}
+          kms_key_id: ${{ secrets.KMS_KEY_ID }}
+          kms_keyring_id: ${{ secrets.KMS_KEYRING_ID }}
+          kms_location: ${{ vars.KMS_LOCATION }}
+          kms_project_id: ${{ vars.KMS_PROJECT_ID }}
+          owner: yagihash
+          repositories: ghat
+          permission_contents: write
 
       - name: Login to GHCR
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
@@ -44,10 +58,9 @@ jobs:
         env:
           REGISTRY: ${{ env.REGISTRY }}
           REPOSITORY: ${{ github.repository }}
-          SHA: ${{ github.sha }}
         run: |
           IMAGE_PATH="$REGISTRY/$REPOSITORY"
-          TEMP_TAG="sha-$SHA"
+          TEMP_TAG="${GITHUB_REF_NAME//\//-}"
 
           docker build -t "$IMAGE_PATH:$TEMP_TAG" .
           docker push "$IMAGE_PATH:$TEMP_TAG"
@@ -63,11 +76,22 @@ jobs:
 
       - name: Commit and push
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HEAD_REF: ${{ github.head_ref }}
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          DIGEST: ${{ steps.docker.outputs.digest }}
+          REF_NAME: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add action.yml
-          git commit -m "chore: pin Docker image digest [skip ci]" || echo "No changes to commit"
-          git push origin "HEAD:$HEAD_REF"
+          CURRENT_DIGEST=$(gh api "repos/$REPOSITORY/contents/action.yml?ref=$REF_NAME" --jq '.content' | base64 -d | grep -oP 'ghcr\.io/[^ "]+' | head -1)
+          if [ "$CURRENT_DIGEST" = "$DIGEST" ]; then
+            echo "action.yml already up to date, skipping commit"
+            exit 0
+          fi
+
+          FILE_CONTENT=$(base64 -w 0 action.yml)
+          FILE_SHA=$(gh api "repos/$REPOSITORY/contents/action.yml?ref=$REF_NAME" --jq '.sha')
+          gh api "repos/$REPOSITORY/contents/action.yml" \
+            --method PUT \
+            -f message="chore: pin Docker image digest" \
+            -f content="$FILE_CONTENT" \
+            -f sha="$FILE_SHA" \
+            -f branch="$REF_NAME"
