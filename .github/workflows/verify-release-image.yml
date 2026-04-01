@@ -1,12 +1,11 @@
 name: Verify action.yml image digest
 
 on:
-  pull_request:
+  workflow_run:
+    workflows:
+      - "Build Docker Image for Release"
     types:
-      - opened
-      - synchronize
-    branches:
-      - main
+      - completed
 
 jobs:
   verify:
@@ -14,17 +13,21 @@ jobs:
     timeout-minutes: 10
     permissions:
       packages: read
+      checks: write
 
     steps:
       - name: Checkout repository
-        if: startsWith(github.head_ref, 'tagpr-')
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_branch }}
           persist-credentials: false
 
+      - name: Get HEAD SHA
+        id: head
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
       - name: Login to GHCR
-        if: startsWith(github.head_ref, 'tagpr-')
+        if: github.event.workflow_run.conclusion == 'success'
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
         with:
           registry: ghcr.io
@@ -32,22 +35,20 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify action.yml digest
-        if: startsWith(github.head_ref, 'tagpr-')
+        id: verify
+        if: github.event.workflow_run.conclusion == 'success'
         env:
           REGISTRY: ghcr.io
           REPOSITORY: ${{ github.repository }}
+          BUILT_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          # Find the SHA of the commit that triggered the build.
-          # build-release.yml commits back with "[skip ci]", so we look for
-          # the latest commit without it — that's the one the image was built from.
-          BUILT_SHA=$(git log --format="%H %s" | grep -v "\[skip ci\]" | head -1 | awk '{print $1}')
           EXPECTED_TAG="$REGISTRY/$REPOSITORY:sha-$BUILT_SHA"
 
           echo "Expecting image: $EXPECTED_TAG"
 
           MANIFEST=$(docker manifest inspect --verbose "$EXPECTED_TAG" 2>/dev/null || true)
           if [ -z "$MANIFEST" ]; then
-            echo "Image $EXPECTED_TAG not found. Build may not have completed yet."
+            echo "Image $EXPECTED_TAG not found."
             exit 1
           fi
 
@@ -64,3 +65,25 @@ jobs:
             echo "Actual:   $ACTUAL_DIGEST"
             exit 1
           fi
+
+      - name: Post check run result
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_SHA: ${{ steps.head.outputs.sha }}
+          BUILD_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
+        run: |
+          if [ "$BUILD_CONCLUSION" != "success" ] || [ "$VERIFY_OUTCOME" = "failure" ]; then
+            CONCLUSION="failure"
+          else
+            CONCLUSION="success"
+          fi
+
+          gh api "repos/$REPOSITORY/check-runs" \
+            --method POST \
+            -f name="verify-release-image" \
+            -f head_sha="$HEAD_SHA" \
+            -f status="completed" \
+            -f conclusion="$CONCLUSION"
