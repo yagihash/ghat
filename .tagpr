@@ -2,4 +2,4 @@
 releaseBranch = main
 vPrefix = true
 release = false
-changelog = true
+changelog = false
