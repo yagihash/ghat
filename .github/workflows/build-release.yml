@@ -81,7 +81,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
         run: |
           FILE_CONTENT=$(base64 -w 0 action.yml)
-          FILE_SHA=$(gh api "repos/$REPOSITORY/contents/action.yml" --jq '.sha')
+          FILE_SHA=$(gh api "repos/$REPOSITORY/contents/action.yml?ref=$REF_NAME" --jq '.sha')
           gh api "repos/$REPOSITORY/contents/action.yml" \
             --method PUT \
             -f message="chore: pin Docker image digest [skip ci]" \
