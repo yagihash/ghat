@@ -6,9 +6,18 @@ on:
       - "Build Docker Image for Release"
     types:
       - completed
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    branches:
+      - main
 
 jobs:
+  # For tagpr PRs: triggered by workflow_run after build-release completes.
+  # Posts a check run on the branch HEAD (after the digest commit) via Checks API.
   verify:
+    if: github.event_name == 'workflow_run'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -87,3 +96,25 @@ jobs:
             -f head_sha="$HEAD_SHA" \
             -f status="completed" \
             -f conclusion="$CONCLUSION"
+
+  # For non-tagpr PRs: immediately post a success check run so the required check is satisfied.
+  skip:
+    if: github.event_name == 'pull_request' && !startsWith(github.head_ref, 'tagpr-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      checks: write
+
+    steps:
+      - name: Post success check run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          gh api "repos/$REPOSITORY/check-runs" \
+            --method POST \
+            -f name="verify-release-image" \
+            -f head_sha="$HEAD_SHA" \
+            -f status="completed" \
+            -f conclusion="success"
