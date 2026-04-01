@@ -1,0 +1,64 @@
+name: Verify action.yml image digest
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    branches:
+      - main
+
+jobs:
+  verify:
+    if: startsWith(github.head_ref, 'tagpr-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      packages: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Login to GHCR
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify action.yml digest
+        env:
+          REGISTRY: ghcr.io
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          # Find the SHA of the commit that triggered the build.
+          # build-release.yml commits back with "[skip ci]", so we look for
+          # the latest commit without it — that's the one the image was built from.
+          BUILT_SHA=$(git log --format="%H %s" | grep -v "\[skip ci\]" | head -1 | awk '{print $1}')
+          EXPECTED_TAG="$REGISTRY/$REPOSITORY:sha-$BUILT_SHA"
+
+          echo "Expecting image: $EXPECTED_TAG"
+
+          MANIFEST=$(docker manifest inspect --verbose "$EXPECTED_TAG" 2>/dev/null || true)
+          if [ -z "$MANIFEST" ]; then
+            echo "Image $EXPECTED_TAG not found. Build may not have completed yet."
+            exit 1
+          fi
+
+          MANIFEST_DIGEST=$(echo "$MANIFEST" | jq -r '.Descriptor.digest')
+          EXPECTED_DIGEST="$REGISTRY/$REPOSITORY@$MANIFEST_DIGEST"
+
+          ACTUAL_DIGEST=$(grep -oP 'ghcr\.io/[^ "]+' action.yml | head -1)
+
+          if [ "$ACTUAL_DIGEST" = "$EXPECTED_DIGEST" ]; then
+            echo "OK: action.yml digest matches $EXPECTED_TAG"
+          else
+            echo "FAIL: action.yml digest mismatch"
+            echo "Expected: $EXPECTED_DIGEST"
+            echo "Actual:   $ACTUAL_DIGEST"
+            exit 1
+          fi
