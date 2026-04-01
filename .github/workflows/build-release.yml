@@ -58,10 +58,9 @@ jobs:
         env:
           REGISTRY: ${{ env.REGISTRY }}
           REPOSITORY: ${{ github.repository }}
-          SHA: ${{ github.sha }}
         run: |
           IMAGE_PATH="$REGISTRY/$REPOSITORY"
-          TEMP_TAG="sha-$SHA"
+          TEMP_TAG="${GITHUB_REF_NAME//\//-}"
 
           docker build -t "$IMAGE_PATH:$TEMP_TAG" .
           docker push "$IMAGE_PATH:$TEMP_TAG"

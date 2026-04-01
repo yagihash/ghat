@@ -36,21 +36,15 @@ jobs:
         env:
           REGISTRY: ghcr.io
           REPOSITORY: ${{ github.repository }}
+          HEAD_REF: ${{ github.head_ref }}
         run: |
-          AUTHOR=$(git log -1 --format="%an")
-          if [ "$AUTHOR" != "yagihash-bot[bot]" ]; then
-            echo "HEAD commit was not made by yagihash-bot[bot]. Build may not have completed yet."
-            exit 1
-          fi
-
-          COMMIT_A=$(git log --format="%H %an" | grep -v "yagihash-bot\[bot\]" | head -1 | awk '{print $1}')
-
-          EXPECTED_TAG="$REGISTRY/$REPOSITORY:sha-$COMMIT_A"
+          BRANCH_TAG="${HEAD_REF//\//-}"
+          EXPECTED_TAG="$REGISTRY/$REPOSITORY:$BRANCH_TAG"
           echo "Expecting image: $EXPECTED_TAG"
 
           MANIFEST=$(docker manifest inspect --verbose "$EXPECTED_TAG" 2>/dev/null || true)
           if [ -z "$MANIFEST" ]; then
-            echo "Image $EXPECTED_TAG not found."
+            echo "Image $EXPECTED_TAG not found. The build workflow may not have run yet."
             exit 1
           fi
 
