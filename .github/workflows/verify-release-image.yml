@@ -38,12 +38,12 @@ jobs:
           REPOSITORY: ${{ github.repository }}
         run: |
           AUTHOR=$(git log -1 --format="%an")
-          if [ "$AUTHOR" != "github-actions[bot]" ]; then
-            echo "HEAD commit was not made by github-actions[bot]. Build may not have completed yet."
+          if [ "$AUTHOR" != "yagihash-bot[bot]" ]; then
+            echo "HEAD commit was not made by yagihash-bot[bot]. Build may not have completed yet."
             exit 1
           fi
 
-          COMMIT_A=$(git log --format="%H %an" | grep -v "github-actions\[bot\]" | head -1 | awk '{print $1}')
+          COMMIT_A=$(git log --format="%H %an" | grep -v "yagihash-bot\[bot\]" | head -1 | awk '{print $1}')
 
           EXPECTED_TAG="$REGISTRY/$REPOSITORY:sha-$COMMIT_A"
           echo "Expecting image: $EXPECTED_TAG"
