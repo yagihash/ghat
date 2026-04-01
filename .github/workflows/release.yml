@@ -27,29 +27,47 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Login to GHCR
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Tag Docker Image
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
           REGISTRY: ${{ env.REGISTRY }}
           REPOSITORY: ${{ github.repository }}
         run: |
           TAG="$GITHUB_REF_NAME"
           MAJOR="${TAG%%.*}"
-          IMAGE_PATH="$REGISTRY/$REPOSITORY"
 
-          DIGEST=$(grep -oP '(?<=docker://)ghcr\.io[^ "]+' action.yml | head -1)
+          DIGEST_REF=$(grep -oP '(?<=docker://)ghcr\.io[^ "]+' action.yml | head -1)
+          DIGEST="${DIGEST_REF#*@}"
 
-          docker buildx imagetools create \
-            --tag "$IMAGE_PATH:$TAG" \
-            --tag "$IMAGE_PATH:$MAJOR" \
-            "$DIGEST"
+          # Obtain a registry token with pull+push scope
+          TOKEN_B64=$(printf "token:%s" "$GITHUB_TOKEN" | base64 -w 0)
+          REG_TOKEN=$(curl -sf \
+            -H "Authorization: Basic $TOKEN_B64" \
+            "https://ghcr.io/token?scope=repository:${REPOSITORY}:pull,push&service=ghcr.io" \
+            | jq -r .token)
+
+          # Fetch the manifest bytes into a temp file (preserves exact bytes → same digest)
+          MANIFEST_FILE=$(mktemp)
+          curl -sf \
+            -H "Authorization: Bearer $REG_TOKEN" \
+            -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+            "https://ghcr.io/v2/${REPOSITORY}/manifests/${DIGEST}" \
+            -o "$MANIFEST_FILE"
+
+          CONTENT_TYPE=$(jq -r .mediaType "$MANIFEST_FILE")
+
+          # PUT the identical manifest bytes under version tag and major tag
+          for TARGET_TAG in "$TAG" "$MAJOR"; do
+            curl -sf -X PUT \
+              -H "Authorization: Bearer $REG_TOKEN" \
+              -H "Content-Type: $CONTENT_TYPE" \
+              --data-binary "@$MANIFEST_FILE" \
+              "https://ghcr.io/v2/${REPOSITORY}/manifests/${TARGET_TAG}"
+            echo "Tagged ${REGISTRY}/${REPOSITORY}:${TARGET_TAG}"
+          done
+
+          rm -f "$MANIFEST_FILE"
 
       - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
