@@ -37,9 +37,6 @@ jobs:
       - name: Run ghalint act
         run: ./ghalint act
 
-      - name: Run actionlint
-        run: ./actionlint
-
   actionlint:
     runs-on: ubuntu-slim
     timeout-minutes: 15
