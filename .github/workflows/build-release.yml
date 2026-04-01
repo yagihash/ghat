@@ -3,7 +3,7 @@ name: Build Docker Image for Release
 on:
   push:
     branches:
-      - tagpr-*
+      - tagpr-from-*
 
 env:
   REGISTRY: ghcr.io
