@@ -10,7 +10,6 @@ on:
 
 jobs:
   verify:
-    if: startsWith(github.head_ref, 'tagpr-')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -18,12 +17,14 @@ jobs:
 
     steps:
       - name: Checkout repository
+        if: startsWith(github.head_ref, 'tagpr-')
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Login to GHCR
+        if: startsWith(github.head_ref, 'tagpr-')
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
         with:
           registry: ghcr.io
@@ -31,6 +32,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify action.yml digest
+        if: startsWith(github.head_ref, 'tagpr-')
         env:
           REGISTRY: ghcr.io
           REPOSITORY: ${{ github.repository }}
