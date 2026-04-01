@@ -16,9 +16,13 @@ jobs:
     if: startsWith(github.head_ref, 'tagpr-')
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment:
+      name: main
+      deployment: false
     permissions:
       contents: write
       packages: write
+      id-token: write
 
     steps:
       - name: Checkout repository
@@ -27,10 +31,24 @@ jobs:
           ref: ${{ github.head_ref }}
           persist-credentials: false
 
-      - name: Setup git credentials
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh auth setup-git
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - name: Create GitHub App Token
+        id: token
+        uses: ./
+        with:
+          app_id: ${{ secrets.BOT_GITHUB_APP_ID }}
+          kms_key_id: ${{ secrets.KMS_KEY_ID }}
+          kms_keyring_id: ${{ secrets.KMS_KEYRING_ID }}
+          kms_location: ${{ vars.KMS_LOCATION }}
+          kms_project_id: ${{ vars.KMS_PROJECT_ID }}
+          owner: yagihash
+          repositories: ghat
+          permission_contents: write
 
       - name: Login to GHCR
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
@@ -63,7 +81,7 @@ jobs:
 
       - name: Commit and push
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.token.outputs.token }}
           HEAD_REF: ${{ github.head_ref }}
           REPOSITORY: ${{ github.repository }}
         run: |
