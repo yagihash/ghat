@@ -1,11 +1,6 @@
 name: Verify action.yml image digest
 
 on:
-  workflow_run:
-    workflows:
-      - "Build Docker Image for Release"
-    types:
-      - completed
   pull_request:
     types:
       - opened
@@ -14,29 +9,22 @@ on:
       - main
 
 jobs:
-  # For tagpr PRs: triggered by workflow_run after build-release completes.
-  # Posts a check run on the branch HEAD (after the digest commit) via Checks API.
   verify:
-    if: github.event_name == 'workflow_run'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       packages: read
-      checks: write
 
     steps:
       - name: Checkout repository
+        if: startsWith(github.head_ref, 'tagpr-')
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 0
           persist-credentials: false
 
-      - name: Get HEAD SHA
-        id: head
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
       - name: Login to GHCR
-        if: github.event.workflow_run.conclusion == 'success'
+        if: startsWith(github.head_ref, 'tagpr-')
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
         with:
           registry: ghcr.io
@@ -44,15 +32,20 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify action.yml digest
-        id: verify
-        if: github.event.workflow_run.conclusion == 'success'
+        if: startsWith(github.head_ref, 'tagpr-')
         env:
           REGISTRY: ghcr.io
           REPOSITORY: ${{ github.repository }}
-          BUILT_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          EXPECTED_TAG="$REGISTRY/$REPOSITORY:sha-$BUILT_SHA"
+          AUTHOR=$(git log -1 --format="%an")
+          if [ "$AUTHOR" != "github-actions[bot]" ]; then
+            echo "HEAD commit was not made by github-actions[bot]. Build may not have completed yet."
+            exit 1
+          fi
 
+          COMMIT_A=$(git log --format="%H %an" | grep -v "github-actions\[bot\]" | head -1 | awk '{print $1}')
+
+          EXPECTED_TAG="$REGISTRY/$REPOSITORY:sha-$COMMIT_A"
           echo "Expecting image: $EXPECTED_TAG"
 
           MANIFEST=$(docker manifest inspect --verbose "$EXPECTED_TAG" 2>/dev/null || true)
@@ -63,58 +56,12 @@ jobs:
 
           MANIFEST_DIGEST=$(echo "$MANIFEST" | jq -r '.Descriptor.digest')
           EXPECTED_DIGEST="$REGISTRY/$REPOSITORY@$MANIFEST_DIGEST"
-
           ACTUAL_DIGEST=$(grep -oP 'ghcr\.io/[^ "]+' action.yml | head -1)
 
-          if [ "$ACTUAL_DIGEST" = "$EXPECTED_DIGEST" ]; then
-            echo "OK: action.yml digest matches $EXPECTED_TAG"
-          else
+          if [ "$ACTUAL_DIGEST" != "$EXPECTED_DIGEST" ]; then
             echo "FAIL: action.yml digest mismatch"
             echo "Expected: $EXPECTED_DIGEST"
             echo "Actual:   $ACTUAL_DIGEST"
             exit 1
           fi
-
-      - name: Post check run result
-        if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: ${{ github.repository }}
-          HEAD_SHA: ${{ steps.head.outputs.sha }}
-          BUILD_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
-          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
-        run: |
-          if [ "$BUILD_CONCLUSION" != "success" ] || [ "$VERIFY_OUTCOME" = "failure" ]; then
-            CONCLUSION="failure"
-          else
-            CONCLUSION="success"
-          fi
-
-          gh api "repos/$REPOSITORY/check-runs" \
-            --method POST \
-            -f name="verify-release-image" \
-            -f head_sha="$HEAD_SHA" \
-            -f status="completed" \
-            -f conclusion="$CONCLUSION"
-
-  # For non-tagpr PRs: immediately post a success check run so the required check is satisfied.
-  skip:
-    if: github.event_name == 'pull_request' && !startsWith(github.head_ref, 'tagpr-')
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      checks: write
-
-    steps:
-      - name: Post success check run
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: ${{ github.repository }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          gh api "repos/$REPOSITORY/check-runs" \
-            --method POST \
-            -f name="verify-release-image" \
-            -f head_sha="$HEAD_SHA" \
-            -f status="completed" \
-            -f conclusion="success"
+          echo "OK: action.yml digest matches $EXPECTED_TAG"

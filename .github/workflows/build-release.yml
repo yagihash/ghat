@@ -77,14 +77,21 @@ jobs:
       - name: Commit and push
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
+          DIGEST: ${{ steps.docker.outputs.digest }}
           REF_NAME: ${{ github.ref_name }}
           REPOSITORY: ${{ github.repository }}
         run: |
+          CURRENT_DIGEST=$(gh api "repos/$REPOSITORY/contents/action.yml?ref=$REF_NAME" --jq '.content' | base64 -d | grep -oP 'ghcr\.io/[^ "]+' | head -1)
+          if [ "$CURRENT_DIGEST" = "$DIGEST" ]; then
+            echo "action.yml already up to date, skipping commit"
+            exit 0
+          fi
+
           FILE_CONTENT=$(base64 -w 0 action.yml)
           FILE_SHA=$(gh api "repos/$REPOSITORY/contents/action.yml?ref=$REF_NAME" --jq '.sha')
           gh api "repos/$REPOSITORY/contents/action.yml" \
             --method PUT \
-            -f message="chore: pin Docker image digest [skip ci]" \
+            -f message="chore: pin Docker image digest" \
             -f content="$FILE_CONTENT" \
             -f sha="$FILE_SHA" \
             -f branch="$REF_NAME"
