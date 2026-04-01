@@ -1,4 +1,4 @@
-name: "Run ghalint"
+name: "Run Actions Security Check"
 
 on:
   pull_request:
@@ -31,6 +31,27 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
+      - name: Run ghalint run
+        run: ./ghalint run
+
+      - name: Run ghalint act
+        run: ./ghalint act
+
+      - name: Run actionlint
+        run: ./actionlint
+
+  actionlint:
+    runs-on: ubuntu-slim
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      attestations: read
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
       - name: Install actionlint
         run: |
           # renovate: datasource=github-releases depName=rhysd/actionlint
@@ -40,12 +61,6 @@ jobs:
           tar xzf "actionlint_${version#v}_linux_amd64.tar.gz" actionlint
         env:
           GH_TOKEN: ${{ github.token }}
-
-      - name: Run ghalint run
-        run: ./ghalint run
-
-      - name: Run ghalint act
-        run: ./ghalint act
 
       - name: Run actionlint
         run: ./actionlint
