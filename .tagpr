@@ -1,5 +1,5 @@
 [tagpr]
-releaseBranch = main
-vPrefix = true
-release = false
-changelog = false
+	releaseBranch = main
+	vPrefix = true
+	release = false
+	changelog = false
