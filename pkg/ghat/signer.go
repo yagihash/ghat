@@ -15,6 +15,9 @@ type Signer struct {
 
 // NewSigner creates a Signer backed by Google Cloud KMS.
 // projectID, location, keyRingID, keyID, and version identify the CryptoKeyVersion.
+// If version is empty, the latest enabled key version is detected automatically;
+// this requires the SA to have cloudkms.cryptoKeyVersions.list (e.g. roles/cloudkms.viewer).
+// If detection fails, version "1" is used as a fallback.
 func NewSigner(ctx context.Context, projectID, location, keyRingID, keyID, version string) (*Signer, error) {
 	s, err := kms.NewSigner(ctx, projectID, location, keyRingID, keyID, version)
 	if err != nil {

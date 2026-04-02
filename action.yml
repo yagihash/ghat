@@ -17,7 +17,7 @@ inputs:
     description: "KMS key ID"
     required: true
   kms_key_version:
-    description: "KMS key version (defaults to '1')"
+    description: "KMS key version. If omitted, the latest enabled version is selected automatically (requires roles/cloudkms.viewer or equivalent on the SA)."
     required: false
   kms_location:
     description: "KMS Keyring region"

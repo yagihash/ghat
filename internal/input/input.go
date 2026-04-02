@@ -17,7 +17,10 @@ type Config struct {
 	ProjectID  string `envconfig:"KMS_PROJECT_ID" required:"true"`
 	KeyRingID  string `envconfig:"KMS_KEYRING_ID" required:"true"`
 	KeyID      string `envconfig:"KMS_KEY_ID" required:"true"`
-	KeyVersion string `envconfig:"KMS_KEY_VERSION" default:"1"`
+	// KeyVersion defaults to "" to signal automatic detection of the latest enabled
+	// KMS key version. GitHub Actions passes an explicit empty string for optional
+	// inputs the user leaves unset, so the zero value carries the same semantic.
+	KeyVersion string `envconfig:"KMS_KEY_VERSION" default:""`
 	Location   string `envconfig:"KMS_LOCATION" required:"true"`
 }
 
@@ -29,10 +32,6 @@ func Load() (*Config, error) {
 
 	if c.Owner == "" {
 		c.Owner = os.Getenv("GITHUB_REPOSITORY_OWNER")
-	}
-
-	if c.KeyVersion == "" {
-		c.KeyVersion = "1"
 	}
 
 	if len(c.Permissions) > 0 {

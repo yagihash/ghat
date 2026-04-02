@@ -12,8 +12,9 @@ import (
 
 // mockKMSClient is a mock implementation of KMSClient for testing
 type mockKMSClient struct {
-	asymmetricSignFunc func(ctx context.Context, req *kmspb.AsymmetricSignRequest, opts ...gax.CallOption) (*kmspb.AsymmetricSignResponse, error)
-	closeFunc          func() error
+	asymmetricSignFunc         func(ctx context.Context, req *kmspb.AsymmetricSignRequest, opts ...gax.CallOption) (*kmspb.AsymmetricSignResponse, error)
+	latestEnabledKeyVersionFunc func(ctx context.Context, parent string) (string, error)
+	closeFunc                  func() error
 }
 
 func (m *mockKMSClient) AsymmetricSign(ctx context.Context, req *kmspb.AsymmetricSignRequest, opts ...gax.CallOption) (*kmspb.AsymmetricSignResponse, error) {
@@ -21,6 +22,13 @@ func (m *mockKMSClient) AsymmetricSign(ctx context.Context, req *kmspb.Asymmetri
 		return m.asymmetricSignFunc(ctx, req, opts...)
 	}
 	return &kmspb.AsymmetricSignResponse{}, nil
+}
+
+func (m *mockKMSClient) LatestEnabledKeyVersion(ctx context.Context, parent string) (string, error) {
+	if m.latestEnabledKeyVersionFunc != nil {
+		return m.latestEnabledKeyVersionFunc(ctx, parent)
+	}
+	return "", errors.New("not implemented")
 }
 
 func (m *mockKMSClient) Close() error {
@@ -75,6 +83,49 @@ func TestNewSigner(t *testing.T) {
 
 			if signer.client != mockClient {
 				t.Error("client was not set correctly")
+			}
+		})
+	}
+}
+
+func TestResolveVersion(t *testing.T) {
+	tests := []struct {
+		name                    string
+		version                 string
+		latestEnabledKeyVersion func(ctx context.Context, parent string) (string, error)
+		wantVersion             string
+	}{
+		{
+			name:        "explicit version is returned as-is",
+			version:     "3",
+			wantVersion: "3",
+		},
+		{
+			name:    "empty version triggers auto-detection",
+			version: "",
+			latestEnabledKeyVersion: func(ctx context.Context, parent string) (string, error) {
+				return "5", nil
+			},
+			wantVersion: "5",
+		},
+		{
+			name:    "empty version falls back to 1 when detection fails",
+			version: "",
+			latestEnabledKeyVersion: func(ctx context.Context, parent string) (string, error) {
+				return "", errors.New("permission denied")
+			},
+			wantVersion: "1",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockClient := &mockKMSClient{
+				latestEnabledKeyVersionFunc: tt.latestEnabledKeyVersion,
+			}
+			got := resolveVersion(context.Background(), mockClient, "proj", "loc", "ring", "key", tt.version)
+			if got != tt.wantVersion {
+				t.Errorf("resolveVersion = %q, want %q", got, tt.wantVersion)
 			}
 		})
 	}
