@@ -119,7 +119,7 @@
       "customType": "regex",
       "description": "Update ghalint and actionlint versions in ghalint workflow",
       "managerFilePatterns": ["/^\.github/workflows/ghalint\.yml$/"],
-      "matchStrings": ["# renovate: datasource=(?<datasource>[^\s]+) depName=(?<depName>[^\s]+)\s+version=v?(?<currentValue>[^\s]+)"],
+      "matchStrings": ["# renovate: datasource=(?<datasource>[^\\s]+) depName=(?<depName>[^\\s]+)\\s+version=v?(?<currentValue>[^\\s]+)"],
       "versioningTemplate": "semver"
     }
   ],
