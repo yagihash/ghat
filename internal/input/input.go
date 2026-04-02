@@ -17,6 +17,9 @@ type Config struct {
 	ProjectID  string `envconfig:"KMS_PROJECT_ID" required:"true"`
 	KeyRingID  string `envconfig:"KMS_KEYRING_ID" required:"true"`
 	KeyID      string `envconfig:"KMS_KEY_ID" required:"true"`
+	// KeyVersion defaults to "" to signal automatic detection of the latest enabled
+	// KMS key version. GitHub Actions passes an explicit empty string for optional
+	// inputs the user leaves unset, so the zero value carries the same semantic.
 	KeyVersion string `envconfig:"KMS_KEY_VERSION" default:""`
 	Location   string `envconfig:"KMS_LOCATION" required:"true"`
 }

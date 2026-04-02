@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -93,6 +94,7 @@ func resolveVersion(ctx context.Context, client KMSClient, projectID, location, 
 		projectID, location, keyRingID, keyID)
 	resolved, err := client.LatestEnabledKeyVersion(ctx, parent)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "ghat: failed to detect latest KMS key version (%v); falling back to version \"1\"\n", err)
 		return "1"
 	}
 	return resolved

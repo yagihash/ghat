@@ -99,6 +99,14 @@ resource "google_kms_crypto_key_iam_member" "gha_is_cloudkms_signer" {
   role          = "roles/cloudkms.signer"
   member        = "serviceAccount:your-service-account"
 }
+
+# Optional: grant cloudkms.viewer so ghat can auto-detect the latest enabled
+# key version when kms_key_version is omitted.
+resource "google_kms_crypto_key_iam_member" "gha_is_cloudkms_viewer" {
+  crypto_key_id = google_kms_crypto_key.github_app_signing_key.id
+  role          = "roles/cloudkms.viewer"
+  member        = "serviceAccount:your-service-account"
+}
 ```
 
 ### Import Your GitHub App Private Key
