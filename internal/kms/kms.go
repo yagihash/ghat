@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -22,8 +21,9 @@ type KMSClient interface {
 }
 
 type Signer struct {
-	client  KMSClient
-	keyPath string
+	client     KMSClient
+	keyPath    string
+	resolution ResolveResult
 }
 
 // kmsClientWrapper wraps the real KMS client to implement KMSClient.
@@ -83,34 +83,50 @@ func NewKMSClient(ctx context.Context) (KMSClient, error) {
 	return &kmsClientWrapper{inner: client}, nil
 }
 
+// ResolveResult holds the outcome of key version resolution.
+type ResolveResult struct {
+	Version      string // the key version that will be used
+	AutoDetected bool   // true when version was empty and auto-detection was attempted
+	DetectionErr error  // non-nil when auto-detection failed and "1" was used as fallback
+}
+
 // resolveVersion returns version if non-empty. Otherwise it attempts to detect
 // the latest enabled key version via the KMS API. If detection fails (e.g. the SA
 // lacks cloudkms.cryptoKeyVersions.list), it falls back to "1".
-func resolveVersion(ctx context.Context, client KMSClient, projectID, location, keyRingID, keyID, version string) string {
+func resolveVersion(ctx context.Context, client KMSClient, projectID, location, keyRingID, keyID, version string) ResolveResult {
 	if version != "" {
-		return version
+		return ResolveResult{Version: version}
 	}
 	parent := fmt.Sprintf("projects/%s/locations/%s/keyRings/%s/cryptoKeys/%s",
 		projectID, location, keyRingID, keyID)
 	resolved, err := client.LatestEnabledKeyVersion(ctx, parent)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ghat: failed to detect latest KMS key version (%v); falling back to version \"1\"\n", err)
-		return "1"
+		return ResolveResult{Version: "1", AutoDetected: true, DetectionErr: err}
 	}
-	return resolved
+	return ResolveResult{Version: resolved, AutoDetected: true}
 }
 
 // NewSigner creates a new Signer with a KMS client.
 // If version is empty, the latest enabled key version is detected automatically.
 // Falls back to version "1" when the SA lacks the required list permission.
+// The resolution outcome is available via Signer.Resolution.
 func NewSigner(ctx context.Context, projectID, location, keyRingID, keyID, version string) (*Signer, error) {
 	client, err := NewKMSClient(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	resolved := resolveVersion(ctx, client, projectID, location, keyRingID, keyID, version)
-	return newSigner(client, projectID, location, keyRingID, keyID, resolved), nil
+	result := resolveVersion(ctx, client, projectID, location, keyRingID, keyID, version)
+	s := newSigner(client, projectID, location, keyRingID, keyID, result.Version)
+	s.resolution = result
+	return s, nil
+}
+
+// KeyVersionInfo returns the key version that will be used for signing and whether
+// it was detected automatically (i.e. kms_key_version was not explicitly specified).
+// When auto-detection failed, autoDetected is true and version is "1" (fallback).
+func (s *Signer) KeyVersionInfo() (version string, autoDetected bool) {
+	return s.resolution.Version, s.resolution.AutoDetected
 }
 
 // newSigner creates a new Signer with the given KMS client (for testing)

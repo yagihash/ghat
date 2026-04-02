@@ -94,11 +94,15 @@ func TestResolveVersion(t *testing.T) {
 		version                 string
 		latestEnabledKeyVersion func(ctx context.Context, parent string) (string, error)
 		wantVersion             string
+		wantAutoDetected        bool
+		wantDetectionErr        bool
 	}{
 		{
-			name:        "explicit version is returned as-is",
-			version:     "3",
-			wantVersion: "3",
+			name:             "explicit version is returned as-is",
+			version:          "3",
+			wantVersion:      "3",
+			wantAutoDetected: false,
+			wantDetectionErr: false,
 		},
 		{
 			name:    "empty version triggers auto-detection",
@@ -106,7 +110,9 @@ func TestResolveVersion(t *testing.T) {
 			latestEnabledKeyVersion: func(ctx context.Context, parent string) (string, error) {
 				return "5", nil
 			},
-			wantVersion: "5",
+			wantVersion:      "5",
+			wantAutoDetected: true,
+			wantDetectionErr: false,
 		},
 		{
 			name:    "empty version falls back to 1 when detection fails",
@@ -114,7 +120,9 @@ func TestResolveVersion(t *testing.T) {
 			latestEnabledKeyVersion: func(ctx context.Context, parent string) (string, error) {
 				return "", errors.New("permission denied")
 			},
-			wantVersion: "1",
+			wantVersion:      "1",
+			wantAutoDetected: true,
+			wantDetectionErr: true,
 		},
 	}
 
@@ -124,8 +132,14 @@ func TestResolveVersion(t *testing.T) {
 				latestEnabledKeyVersionFunc: tt.latestEnabledKeyVersion,
 			}
 			got := resolveVersion(context.Background(), mockClient, "proj", "loc", "ring", "key", tt.version)
-			if got != tt.wantVersion {
-				t.Errorf("resolveVersion = %q, want %q", got, tt.wantVersion)
+			if got.Version != tt.wantVersion {
+				t.Errorf("ResolveResult.Version = %q, want %q", got.Version, tt.wantVersion)
+			}
+			if got.AutoDetected != tt.wantAutoDetected {
+				t.Errorf("ResolveResult.AutoDetected = %v, want %v", got.AutoDetected, tt.wantAutoDetected)
+			}
+			if (got.DetectionErr != nil) != tt.wantDetectionErr {
+				t.Errorf("ResolveResult.DetectionErr = %v, wantErr = %v", got.DetectionErr, tt.wantDetectionErr)
 			}
 		})
 	}

@@ -44,6 +44,13 @@ func realMain() int {
 			actions.LogWarning("failed to close KMS signer: " + err.Error())
 		}
 	}(signer)
+	if version, autoDetected := signer.KeyVersionInfo(); autoDetected {
+		if version == "1" {
+			actions.LogNotice("failed to detect latest KMS key version; using version \"1\" as fallback")
+		} else {
+			actions.LogNotice(fmt.Sprintf("auto-detected latest KMS key version: %s", version))
+		}
+	}
 
 	signedJWT, err := jwt.Build(ctx, signer, args.AppID, time.Now())
 	if err != nil {
