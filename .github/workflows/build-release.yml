@@ -10,7 +10,7 @@ env:
 
 jobs:
   build:
-    if: "!startsWith(github.event.head_commit.message, 'chore: pin Docker image digest')"
+    if: "github.event.forced || !startsWith(github.event.head_commit.message, 'chore: pin Docker image digest')"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
