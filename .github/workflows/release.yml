@@ -142,26 +142,17 @@ jobs:
           TAG="$GITHUB_REF_NAME"
           PREV_TAG=$(git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -v "^${TAG}$" | head -1)
 
-          GENERATE_ARGS=(-f "tag_name=${TAG}")
           if [ -n "$PREV_TAG" ]; then
-            GENERATE_ARGS+=(-f "previous_tag_name=${PREV_TAG}")
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --generate-notes \
+              --notes-start-tag "$PREV_TAG" \
+              --verify-tag \
+              dist/*.tar.gz dist/checksums.txt
+          else
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --generate-notes \
+              --verify-tag \
+              dist/*.tar.gz dist/checksums.txt
           fi
-
-          # Generate notes using .github/release.yml categories, then strip uncategorized PRs
-          BODY=$(gh api --method POST \
-            -H "Accept: application/vnd.github+json" \
-            "/repos/${GH_REPO}/releases/generate-notes" \
-            "${GENERATE_ARGS[@]}" \
-            --jq .body)
-
-          BODY=$(printf '%s' "$BODY" | awk '
-            /^## Other Changes/          { skip=1; next }
-            skip && /^(## |\*\*Full Ch)/ { skip=0 }
-            !skip                        { print }
-          ')
-
-          gh release create "$TAG" \
-            --title "$TAG" \
-            --notes "$BODY" \
-            --verify-tag \
-            dist/*.tar.gz dist/checksums.txt
