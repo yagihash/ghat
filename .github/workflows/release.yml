@@ -19,6 +19,7 @@ jobs:
       contents: write
       packages: write
       id-token: write
+      attestations: write
 
     steps:
       - name: Checkout repository
@@ -133,6 +134,16 @@ jobs:
           tar -czf dist/licenses.tar.gz -C dist licenses
           sha256sum dist/*.tar.gz > dist/checksums.txt
 
+      - name: Attest release artifacts
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: |
+            dist/ghat_*_linux_amd64.tar.gz
+            dist/ghat_*_linux_arm64.tar.gz
+            dist/ghat_*_darwin_amd64.tar.gz
+            dist/ghat_*_darwin_arm64.tar.gz
+            dist/checksums.txt
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
@@ -156,13 +167,3 @@ jobs:
               --verify-tag \
               dist/*.tar.gz dist/checksums.txt
           fi
-
-      - name: Attest release artifacts
-        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
-        with:
-          subject-path: |
-            dist/ghat_*_linux_amd64.tar.gz
-            dist/ghat_*_linux_arm64.tar.gz
-            dist/ghat_*_darwin_amd64.tar.gz
-            dist/ghat_*_darwin_arm64.tar.gz
-            dist/checksums.txt

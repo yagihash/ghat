@@ -138,7 +138,7 @@ Download the binary for your platform and verify build provenance with [GitHub A
 
 ```bash
 gh release download --repo yagihash/ghat --pattern "ghat_*_darwin_arm64.tar.gz"
-gh attestation verify ghat_*_darwin_arm64.tar.gz --repo yagihash/ghat
+gh attestation verify ghat_*_darwin_arm64.tar.gz --repo yagihash/ghat --signer-workflow yagihash/ghat/.github/workflows/release.yml
 tar -xzf ghat_*_darwin_arm64.tar.gz
 
 # macOS only: remove quarantine attribute added by the OS when downloading files
