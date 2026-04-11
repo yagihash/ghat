@@ -130,7 +130,22 @@ CLOUDSDK_PYTHON_SITEPACKAGES=1 gcloud kms keys versions import \
 ```
 
 ## For other use-cases
-You can use this for other general use-cases. I will include executables in releases later.
+You can also use this as a standalone CLI tool. Binaries for Linux and macOS are available in [GitHub Releases](https://github.com/yagihash/ghat/releases).
+
+### Installing from GitHub Releases
+
+Download the binary for your platform and verify build provenance with [GitHub Attestation](https://docs.github.com/en/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds):
+
+```bash
+gh release download --repo yagihash/ghat --pattern "ghat_*_darwin_arm64.tar.gz"
+gh attestation verify ghat_*_darwin_arm64.tar.gz --repo yagihash/ghat
+tar -xzf ghat_*_darwin_arm64.tar.gz
+
+# macOS only: remove quarantine attribute added by the OS when downloading files
+xattr -d com.apple.quarantine ./ghat
+```
+
+### Installing with go install
 
 ```bash
 go install github.com/yagihash/ghat/v2/cmd/ghat@latest
