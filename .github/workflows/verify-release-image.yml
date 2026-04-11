@@ -25,7 +25,7 @@ jobs:
 
       - name: Login to GHCR
         if: startsWith(github.head_ref, 'tagpr-')
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -59,3 +59,51 @@ jobs:
             exit 1
           fi
           echo "OK: action.yml digest matches $EXPECTED_TAG"
+
+  test:
+    needs: verify
+    if: startsWith(github.head_ref, 'tagpr-from-')
+    runs-on: ubuntu-latest
+    environment:
+      name: main
+      deployment: false
+    timeout-minutes: 30
+    concurrency:
+      group: ${{ github.workflow }}-test-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - name: Run action
+        id: token
+        uses: ./
+        with:
+          app_id: ${{ secrets.BOT_GITHUB_APP_ID }}
+          kms_key_id: ${{ secrets.KMS_KEY_ID }}
+          kms_keyring_id: ${{ secrets.KMS_KEYRING_ID }}
+          kms_location: ${{ vars.KMS_LOCATION }}
+          kms_project_id: ${{ vars.KMS_PROJECT_ID }}
+          owner: yagihash
+          repositories: |
+            ghat
+          permission_contents: read
+          permission_pull_requests: read
+
+      - name: Test token
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          gh auth status
