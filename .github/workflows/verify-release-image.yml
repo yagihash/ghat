@@ -60,7 +60,7 @@ jobs:
           fi
           echo "OK: action.yml digest matches $EXPECTED_TAG"
 
-  test:
+  integration-test:
     needs: verify
     if: startsWith(github.head_ref, 'tagpr-from-')
     runs-on: ubuntu-latest
