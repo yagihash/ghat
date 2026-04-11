@@ -2,3 +2,13 @@ changelog:
   exclude:
     labels:
       - tagpr
+  categories:
+    - title: Features
+      labels:
+        - feature
+    - title: Bug Fixes
+      labels:
+        - bugfix
+    - title: Dependencies
+      labels:
+        - dependencies
