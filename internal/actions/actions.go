@@ -64,7 +64,7 @@ func GetState(key string) (string, error) {
 }
 
 func LogGroup(title string, messages ...string) {
-	fmt.Print("::group::" + title)
+	fmt.Println("::group::" + title)
 	for _, v := range messages {
 		fmt.Println(v)
 	}
