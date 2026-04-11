@@ -156,3 +156,13 @@ jobs:
               --verify-tag \
               dist/*.tar.gz dist/checksums.txt
           fi
+
+      - name: Attest release artifacts
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: |
+            dist/ghat_*_linux_amd64.tar.gz
+            dist/ghat_*_linux_arm64.tar.gz
+            dist/ghat_*_darwin_amd64.tar.gz
+            dist/ghat_*_darwin_arm64.tar.gz
+            dist/checksums.txt
