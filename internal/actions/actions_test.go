@@ -271,14 +271,9 @@ func TestAddMask(t *testing.T) {
 
 func TestLogGroup(t *testing.T) {
 	out := captureStdout(t, func() { LogGroup("my group", "line1", "line2") })
-	if !strings.HasPrefix(out, "::group::my group") {
-		t.Errorf("output should start with ::group::my group, got %q", out)
-	}
-	if !strings.Contains(out, "line1") || !strings.Contains(out, "line2") {
-		t.Errorf("output should contain messages, got %q", out)
-	}
-	if !strings.Contains(out, "::endgroup::") {
-		t.Errorf("output should contain ::endgroup::, got %q", out)
+	want := "::group::my group\nline1\nline2\n::endgroup::\n"
+	if out != want {
+		t.Errorf("output = %q, want %q", out, want)
 	}
 }
 
