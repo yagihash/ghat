@@ -155,9 +155,9 @@ jobs:
             --jq .body)
 
           BODY=$(printf '%s' "$BODY" | awk '
-            /^## Other Changes/ { skip=1; next }
-            skip && /^## /      { skip=0 }
-            !skip               { print }
+            /^## Other Changes/          { skip=1; next }
+            skip && /^(## |\*\*Full Ch)/ { skip=0 }
+            !skip                        { print }
           ')
 
           gh release create "$TAG" \
