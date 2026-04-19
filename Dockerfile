@@ -15,4 +15,3 @@ RUN upx --best /post
 FROM alpine:3.23.3
 COPY --from=builder /ghat /ghat
 COPY --from=builder /post /post
-USER nobody
