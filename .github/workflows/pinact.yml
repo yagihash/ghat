@@ -30,17 +30,10 @@ jobs:
 
       - name: Create GitHub App Token
         id: token
-        uses: ./
+        uses: yagihash/sts-action@0243739fb1c37f6f31ba9936af010a807a9dd644 # v0.0.1
         with:
-          app_id: ${{ secrets.BOT_GITHUB_APP_ID }}
-          kms_key_id: ${{ secrets.KMS_KEY_ID }}
-          kms_keyring_id: ${{ secrets.KMS_KEYRING_ID }}
-          kms_location: ${{ vars.KMS_LOCATION }}
-          kms_project_id: ${{ vars.KMS_PROJECT_ID }}
-          owner: yagihash
-          repositories: |
-            ghat
-          permission_contents: write
+          scope: ${{ github.repository }}
+          policy: writer
 
       - name: Setup git
         env:
