@@ -10,9 +10,9 @@ permissions := {
 default allow := false
 
 allow if {
-	input.sub == "repo:yagihash/ghat:refs/head/main"
+	input.sub = "repo:yagihash/ghat:refs/heads/main"
 }
 
 allow if {
-	startswith(input.sub, "repo:yagihash/ghat:refs/head/tagpr-from-")
+	startswith(input.sub, "repo:yagihash/ghat:refs/heads/tagpr-from-")
 }
