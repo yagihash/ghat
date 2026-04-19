@@ -117,7 +117,7 @@ jobs:
             ARCHIVE="dist/ghat_${VERSION}_${SUFFIX}.tar.gz"
 
             CGO_ENABLED=0 GOOS="$GOOS" GOARCH="$GOARCH" go build \
-              -ldflags="-s -w" \
+              -ldflags="-s" \
               -trimpath \
               -o dist/ghat \
               ./cmd/ghat
