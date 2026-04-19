@@ -14,5 +14,5 @@ allow if {
 }
 
 allow if {
-	input.sub == "repo:yagihash/ghat:refs/heads/main"
+	input.sub == "repo:yagihash/ghat:ref:refs/heads/main"
 }
