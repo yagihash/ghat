@@ -18,5 +18,5 @@ allow if {
 }
 
 allow if {
-	startswith(input.sub, "repo:yagihash/ghat:ref:refs/tags/")
+	startswith(input.sub, "repo:yagihash/ghat:ref:refs/tags/v")
 }
