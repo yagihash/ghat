@@ -1,16 +1,18 @@
-FROM golang:1.26-alpine AS builder
+FROM golang:1.26.2-alpine AS builder
 WORKDIR /app
-COPY . .
 
-RUN apk update
-RUN apk add upx
+RUN apk add --no-cache upx
 
+COPY go.mod go.sum ./
 RUN go mod download
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -trimpath -o /ghat ./cmd/ghat
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -trimpath -o /post ./cmd/post
+
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s" -trimpath -o /ghat ./cmd/ghat
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s" -trimpath -o /post ./cmd/post
 RUN upx --best /ghat
 RUN upx --best /post
 
 FROM alpine:3.23.3
 COPY --from=builder /ghat /ghat
 COPY --from=builder /post /post
+USER nobody
