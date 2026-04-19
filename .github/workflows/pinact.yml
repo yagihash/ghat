@@ -15,6 +15,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      attestations: read
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -54,6 +55,9 @@ jobs:
           GH_TOKEN: ${{ steps.token.outputs.token }}
         run: |
           curl -L -o pinact.tar.gz 'https://github.com/suzuki-shunsuke/pinact/releases/download/v3.8.0/pinact_linux_amd64.tar.gz'
+          gh attestation verify pinact.tar.gz \
+            --repo suzuki-shunsuke/pinact \
+            --signer-workflow suzuki-shunsuke/go-release-workflow/.github/workflows/release.yaml
           tar xzf pinact.tar.gz pinact
 
           ./pinact run README.md -u
