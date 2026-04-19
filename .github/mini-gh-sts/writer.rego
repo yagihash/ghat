@@ -10,7 +10,7 @@ permissions := {
 default allow := false
 
 allow if {
-	input.sub = "repo:yagihash/ghat:refs/heads/main"
+	input.sub == "repo:yagihash/ghat:refs/heads/main"
 }
 
 allow if {
