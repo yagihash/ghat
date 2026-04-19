@@ -33,19 +33,6 @@ jobs:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
-      - name: Create GitHub App Token
-        id: token
-        uses: ./
-        with:
-          app_id: ${{ secrets.BOT_GITHUB_APP_ID }}
-          kms_key_id: ${{ secrets.KMS_KEY_ID }}
-          kms_keyring_id: ${{ secrets.KMS_KEYRING_ID }}
-          kms_location: ${{ vars.KMS_LOCATION }}
-          kms_project_id: ${{ vars.KMS_PROJECT_ID }}
-          owner: yagihash
-          repositories: ghat
-          permission_contents: write
-
       - name: Login to GHCR
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
@@ -73,6 +60,19 @@ jobs:
           DIGEST: ${{ steps.docker.outputs.digest }}
         run: |
           sed -i "s|image: \"docker://.*\"|image: \"docker://$DIGEST\"|g" action.yml
+
+      - name: Create GitHub App Token
+        id: token
+        uses: ./
+        with:
+          app_id: ${{ secrets.BOT_GITHUB_APP_ID }}
+          kms_key_id: ${{ secrets.KMS_KEY_ID }}
+          kms_keyring_id: ${{ secrets.KMS_KEYRING_ID }}
+          kms_location: ${{ vars.KMS_LOCATION }}
+          kms_project_id: ${{ vars.KMS_PROJECT_ID }}
+          owner: yagihash
+          repositories: ghat
+          permission_contents: write
 
       - name: Commit and push
         env:
