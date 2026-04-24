@@ -1,4 +1,4 @@
-package mini_gh_sts
+package ghmint
 
 issuer := "https://token.actions.githubusercontent.com"
 
