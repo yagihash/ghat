@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"time"
@@ -94,6 +96,9 @@ func realMain() int {
 	}
 	if isActions {
 		actions.AddMask(accessToken.Token)
+
+		hash := sha256.Sum256([]byte(accessToken.Token))
+		actions.LogNotice("Token hash: " + base64.StdEncoding.EncodeToString(hash[:]))
 
 		if err := actions.SetState("token", accessToken.Token); err != nil {
 			actions.LogError(err.Error())
