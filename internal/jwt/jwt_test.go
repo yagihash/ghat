@@ -52,8 +52,8 @@ func TestBuild(t *testing.T) {
 				if err := json.Unmarshal(headerBytes, &header); err != nil {
 					t.Fatalf("failed to unmarshal header: %v", err)
 				}
-				if header["typ"] != "token" {
-					t.Errorf("header[typ] = %q, want %q", header["typ"], "token")
+				if header["typ"] != "JWT" {
+					t.Errorf("header[typ] = %q, want %q", header["typ"], "JWT")
 				}
 				if header["alg"] != "RS256" {
 					t.Errorf("header[alg] = %q, want %q", header["alg"], "RS256")
