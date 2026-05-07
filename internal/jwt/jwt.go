@@ -27,7 +27,7 @@ type Signer interface {
 // now is the reference time; callers should pass time.Now().
 func Build(ctx context.Context, signer Signer, appID string, now time.Time) (string, error) {
 	header := map[string]any{
-		"typ": "token",
+		"typ": "JWT",
 		"alg": "RS256",
 	}
 
