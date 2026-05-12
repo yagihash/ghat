@@ -44,7 +44,7 @@ jobs:
       - name: Install ghalint
         run: |
           # renovate: datasource=github-releases depName=suzuki-shunsuke/ghalint
-          version=v1.5.5
+          version=v1.5.6
           gh release download -R suzuki-shunsuke/ghalint "${version}" -p "ghalint_${version#v}_linux_amd64.tar.gz"
           gh attestation verify "ghalint_${version#v}_linux_amd64.tar.gz" \
             -R suzuki-shunsuke/ghalint \
