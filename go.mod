@@ -3,7 +3,7 @@ module github.com/yagihash/ghat/v2
 go 1.26.1
 
 require (
-	cloud.google.com/go/kms v1.29.0
+	cloud.google.com/go/kms v1.31.0
 	github.com/google/go-cmp v0.7.0
 	github.com/googleapis/gax-go/v2 v2.22.0
 	github.com/kelseyhightower/envconfig v1.4.0
