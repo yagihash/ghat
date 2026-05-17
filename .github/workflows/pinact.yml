@@ -21,7 +21,7 @@ jobs:
 
       - name: Create GitHub App Token
         id: token
-        uses: yagihash/ghmint-action@4b6f18dd790d506f0b06022d7d2786c07655f769 # v0.0.1
+        uses: yagihash/ghmint-action@be57533eef7f69550d06f0c93eede5589158281a # v1.0.0
         with:
           scope: ${{ github.repository }}
           policy: writer
