@@ -71,7 +71,8 @@ jobs:
               --title "🤖 Sync GitHub App Permissions" \
               --body "This PR updates \`action.yml\` inputs and args based on the latest GitHub App permissions from octokit/openapi." \
               --base main \
-              --head "$BRANCH_NAME" 2>&1 || gh pr view "$BRANCH_NAME" --json url --jq '.url')
+              --head "$BRANCH_NAME" \
+              --reviewer yagihash 2>&1 || gh pr view "$BRANCH_NAME" --json url --jq '.url')
 
             {
               echo "## Sync GitHub App Permissions"
