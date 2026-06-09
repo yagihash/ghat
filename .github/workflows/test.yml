@@ -8,14 +8,16 @@ on:
 
 jobs:
   changes:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
+      actions: write
       contents: read
       pull-requests: read
     outputs:
       go: ${{ steps.filter.outputs.go }}
     steps:
+      - uses: cicd-sensor/cicd-sensor-action@1935de498397aa7b9bf6ac7ca822ddb430a34843 # v0.0.31
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
@@ -36,9 +38,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
+      actions: write
       contents: read
 
     steps:
+      - uses: cicd-sensor/cicd-sensor-action@1935de498397aa7b9bf6ac7ca822ddb430a34843 # v0.0.31
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false

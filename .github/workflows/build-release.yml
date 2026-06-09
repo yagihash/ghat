@@ -17,11 +17,13 @@ jobs:
       name: main
       deployment: false
     permissions:
+      actions: write
       contents: write
       packages: write
       id-token: write
 
     steps:
+      - uses: cicd-sensor/cicd-sensor-action@1935de498397aa7b9bf6ac7ca822ddb430a34843 # v0.0.31
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
