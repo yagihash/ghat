@@ -23,6 +23,8 @@
   "platformAutomerge": true,
   "rangeStrategy": "pin",
   "minimumReleaseAge": "3 days",
+  "internalChecksFilter": "strict",
+  "prCreation": "not-pending",
   "osvVulnerabilityAlerts": true,
   "lockFileMaintenance": {
     "enabled": true,
