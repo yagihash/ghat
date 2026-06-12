@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -66,7 +67,12 @@ func (c *Client) newRequest(method, path string, body any) (*http.Request, error
 }
 
 func (c *Client) GetInstallationByOwner(owner string) (*InstallationResponse, error) {
-	path := fmt.Sprintf("users/%s/installation", owner)
+	if owner == "" {
+		return nil, fmt.Errorf("owner is empty")
+	}
+	// PathEscape prevents path traversal / query injection when owner comes
+	// from untrusted callers of the public pkg/ghat API.
+	path := fmt.Sprintf("users/%s/installation", url.PathEscape(owner))
 	req, err := c.newRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err

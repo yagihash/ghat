@@ -119,6 +119,48 @@ func TestGetInstallationByOwner(t *testing.T) {
 				}
 			},
 		},
+		{
+			name:  "空のowner",
+			owner: "",
+			roundTripFunc: func(req *http.Request) (*http.Response, error) {
+				return nil, errors.New("request must not be sent for empty owner")
+			},
+			wantErr: true,
+		},
+		{
+			name:  "パストラバーサルを含むownerはエスケープされる",
+			owner: "../app/installations",
+			roundTripFunc: func(req *http.Request) (*http.Response, error) {
+				return newResponse(http.StatusOK, `{"id": 1}`), nil
+			},
+			wantID:  1,
+			wantErr: false,
+			checkReq: func(t *testing.T, req *http.Request) {
+				t.Helper()
+				wantPath := "/users/..%2Fapp%2Finstallations/installation"
+				if got := req.URL.EscapedPath(); got != wantPath {
+					t.Errorf("EscapedPath = %q, want %q", got, wantPath)
+				}
+			},
+		},
+		{
+			name:  "クエリ文字を含むownerはエスケープされる",
+			owner: "owner?per_page=1#x",
+			roundTripFunc: func(req *http.Request) (*http.Response, error) {
+				return newResponse(http.StatusOK, `{"id": 1}`), nil
+			},
+			wantID:  1,
+			wantErr: false,
+			checkReq: func(t *testing.T, req *http.Request) {
+				t.Helper()
+				if got := req.URL.RawQuery; got != "" {
+					t.Errorf("RawQuery = %q, want empty", got)
+				}
+				if got := req.URL.Fragment; got != "" {
+					t.Errorf("Fragment = %q, want empty", got)
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {

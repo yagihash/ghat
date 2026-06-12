@@ -1,6 +1,7 @@
 package input
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -28,6 +29,12 @@ func Load() (*Config, error) {
 	var c Config
 	if err := envconfig.Process("INPUT", &c); err != nil {
 		return nil, err
+	}
+
+	// The JWT and the issued token are sent in the Authorization header, so
+	// plaintext transport must never be allowed.
+	if !strings.HasPrefix(c.BaseURL, "https://") {
+		return nil, fmt.Errorf("base_url must start with https://: %s", c.BaseURL)
 	}
 
 	if c.Owner == "" {

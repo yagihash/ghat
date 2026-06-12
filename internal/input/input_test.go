@@ -76,6 +76,46 @@ func TestLoad_EmptyKeyVersion(t *testing.T) {
 	}
 }
 
+func TestLoad_NonHTTPSBaseURL(t *testing.T) {
+	tests := []struct {
+		name    string
+		baseURL string
+		wantErr bool
+	}{
+		{
+			name:    "https URL is accepted",
+			baseURL: "https://github.example.com/api/v3",
+			wantErr: false,
+		},
+		{
+			name:    "http URL is rejected",
+			baseURL: "http://api.github.com",
+			wantErr: true,
+		},
+		{
+			name:    "scheme-less URL is rejected",
+			baseURL: "api.github.com",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("INPUT_APP_ID", "12345")
+			t.Setenv("INPUT_BASE_URL", tt.baseURL)
+			t.Setenv("INPUT_KMS_PROJECT_ID", "project-id")
+			t.Setenv("INPUT_KMS_KEYRING_ID", "keyring-id")
+			t.Setenv("INPUT_KMS_KEY_ID", "key-id")
+			t.Setenv("INPUT_KMS_LOCATION", "us-central1")
+
+			_, err := Load()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Load() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestRepositories_Decode(t *testing.T) {
 	tests := []struct {
 		name    string
