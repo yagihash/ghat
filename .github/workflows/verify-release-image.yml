@@ -19,11 +19,29 @@ jobs:
     steps:
       - uses: cicd-sensor/cicd-sensor-action@1935de498397aa7b9bf6ac7ca822ddb430a34843 # v0.0.31
       - name: Checkout repository
-        if: startsWith(github.head_ref, 'tagpr-')
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      # The digest in action.yml is the integrity anchor of the released action.
+      # Only build-release.yml (running on tagpr-* branches) may change it; any
+      # other PR touching the image reference is rejected here.
+      - name: Verify image reference is unchanged
+        if: "!startsWith(github.head_ref, 'tagpr-')"
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          BASE_IMAGE=$(git show "origin/$BASE_REF:action.yml" | grep -oP 'docker://[^ "]+' | head -1)
+          HEAD_IMAGE=$(grep -oP 'docker://[^ "]+' action.yml | head -1)
+
+          if [ "$BASE_IMAGE" != "$HEAD_IMAGE" ]; then
+            echo "FAIL: the image reference in action.yml may only be updated by the build-release workflow (tagpr-* branches)"
+            echo "Base: $BASE_IMAGE"
+            echo "Head: $HEAD_IMAGE"
+            exit 1
+          fi
+          echo "OK: image reference unchanged ($HEAD_IMAGE)"
 
       - name: Login to GHCR
         if: startsWith(github.head_ref, 'tagpr-')

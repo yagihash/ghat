@@ -5,8 +5,13 @@ INPUT_JSON="$1"
 ACTION_YML="action.yml"
 NEW_YML="action.yml.new"
 
+# The schema is third-party content (octokit/openapi): keys must stay in a safe
+# charset and descriptions are JSON-escaped (@json) so they cannot break out of
+# the YAML double-quoted scalar.
 jq -r '.components.schemas["app-permissions"].properties | to_entries | .[] |
-  "  permission_" + .key + ":\n    description: \"" + .value.description + " (" + (.value.enum | join("/")) + ")\"\n    required: false"' \
+  "  permission_" + (.key | if test("^[a-zA-Z0-9_-]+$") then . else error("unexpected permission key: " + .) end)
+  + ":\n    description: " + ((.value.description + " (" + (.value.enum | join("/")) + ")") | @json)
+  + "\n    required: false"' \
   "$INPUT_JSON" > inputs_fragment.txt
 
 awk '

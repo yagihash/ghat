@@ -17,8 +17,9 @@ func SetOutput(key, value string) error {
 		return fmt.Errorf("GITHUB_OUTPUT environment variable is not set")
 	}
 
+	// The value may be a secret, so it must not be echoed back in the error.
 	if strings.Contains(value, "\n") {
-		return fmt.Errorf("SetOutput does not support new-line characters in the value: %s", value)
+		return fmt.Errorf("SetOutput does not support new-line characters in the value")
 	}
 
 	if err := writeKeyValue(outputFilePath, key, value); err != nil {
@@ -42,8 +43,9 @@ func SetState(key, value string) error {
 		return fmt.Errorf("value is empty")
 	}
 
+	// The value may be a secret, so it must not be echoed back in the error.
 	if strings.Contains(value, "\n") {
-		return fmt.Errorf("SetState does not support new-line characters in the value: %s", value)
+		return fmt.Errorf("SetState does not support new-line characters in the value")
 	}
 
 	if err := writeKeyValue(stateFilePath, strings.ToUpper(key), value); err != nil {
