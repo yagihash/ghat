@@ -120,7 +120,7 @@ func TestGetInstallationByOwner(t *testing.T) {
 			},
 		},
 		{
-			name:  "空のowner",
+			name:  "empty owner",
 			owner: "",
 			roundTripFunc: func(req *http.Request) (*http.Response, error) {
 				return nil, errors.New("request must not be sent for empty owner")
@@ -128,7 +128,7 @@ func TestGetInstallationByOwner(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:  "パストラバーサルを含むownerはエスケープされる",
+			name:  "owner containing path traversal is escaped",
 			owner: "../app/installations",
 			roundTripFunc: func(req *http.Request) (*http.Response, error) {
 				return newResponse(http.StatusOK, `{"id": 1}`), nil
@@ -144,7 +144,7 @@ func TestGetInstallationByOwner(t *testing.T) {
 			},
 		},
 		{
-			name:  "クエリ文字を含むownerはエスケープされる",
+			name:  "owner containing query characters is escaped",
 			owner: "owner?per_page=1#x",
 			roundTripFunc: func(req *http.Request) (*http.Response, error) {
 				return newResponse(http.StatusOK, `{"id": 1}`), nil
