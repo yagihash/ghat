@@ -17,7 +17,6 @@ jobs:
       name: main
       deployment: false
     permissions:
-      actions: write
       contents: write
       packages: write
       id-token: write

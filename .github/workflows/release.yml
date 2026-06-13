@@ -16,7 +16,6 @@ jobs:
       deployment: false
     timeout-minutes: 15
     permissions:
-      actions: write
       contents: write
       packages: write
       id-token: write
