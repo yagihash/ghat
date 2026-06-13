@@ -14,7 +14,6 @@ jobs:
       deployment: false
     timeout-minutes: 15
     permissions:
-      actions: write
       contents: write
       pull-requests: write
       id-token: write

@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      actions: write
       contents: read
       pull-requests: read
     outputs:
@@ -35,7 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      actions: write
       contents: read
       attestations: read
 
@@ -69,7 +67,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      actions: write
       contents: read
       attestations: read
 
