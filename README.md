@@ -43,7 +43,7 @@ jobs:
 
       - name: Run yagihash/ghat
         id: token
-        uses: yagihash/ghat@f1b4b027e093dc722fb15f0c020ab94ed8df7167 # v2.2.8
+        uses: yagihash/ghat@ddb363556d0ce66d8b01687e221e887100a98867 # v2.3.0
         with:
           app_id: your-github-app-id
           kms_key_id: your-kms-key-id
