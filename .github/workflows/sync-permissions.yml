@@ -58,19 +58,48 @@ jobs:
           GH_TOKEN: ${{ steps.token.outputs.token }}
         run: |
           BRANCH_NAME="feature/sync-permissions-$(date +%Y%m%d)"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          REPO="${GITHUB_REPOSITORY}"
 
           # 変更がある場合のみ PR を作成
           if [[ -n $(git status --porcelain action.yml) ]]; then
-            git checkout -b "$BRANCH_NAME"
-            git add action.yml
-            git commit -m "chore: sync GitHub App permissions"
-            git push origin "$BRANCH_NAME" --force
+            DIFF=$(git diff HEAD -- action.yml)
+
+            # GitHub API 経由で signed commit を作成
+            BASE_SHA=$(git rev-parse HEAD)
+            BASE_TREE=$(gh api "repos/${REPO}/git/commits/${BASE_SHA}" --jq '.tree.sha')
+
+            BLOB_SHA=$(gh api "repos/${REPO}/git/blobs" \
+              --field encoding=base64 \
+              --field content="$(base64 -w0 action.yml)" \
+              --jq '.sha')
+
+            TREE_SHA=$(gh api "repos/${REPO}/git/trees" \
+              --field base_tree="${BASE_TREE}" \
+              --field "tree[][path]=action.yml" \
+              --field "tree[][mode]=100644" \
+              --field "tree[][type]=blob" \
+              --field "tree[][sha]=${BLOB_SHA}" \
+              --jq '.sha')
+
+            COMMIT_SHA=$(jq -n \
+              --arg msg "chore: sync GitHub App permissions" \
+              --arg tree "${TREE_SHA}" \
+              --arg parent "${BASE_SHA}" \
+              '{message: $msg, tree: $tree, parents: [$parent]}' | \
+              gh api "repos/${REPO}/git/commits" --input - --jq '.sha')
+
+            # ブランチを作成または更新
+            gh api "repos/${REPO}/git/refs" \
+              --field ref="refs/heads/${BRANCH_NAME}" \
+              --field sha="${COMMIT_SHA}" 2>/dev/null || \
+            gh api "repos/${REPO}/git/refs/heads/${BRANCH_NAME}" \
+              --method PATCH \
+              --field sha="${COMMIT_SHA}" \
+              --field force=true
 
             PR_URL=$(gh pr create \
               --title "🤖 Sync GitHub App Permissions" \
-              --body "This PR updates \`action.yml\` inputs and args based on the latest GitHub App permissions from octokit/openapi." \
+              --body "This PR updates \`action.yml\` inputs and args based on the latest GitHub App permissions from github/rest-api-description." \
               --base main \
               --head "$BRANCH_NAME" \
               --reviewer yagihash 2>&1 || gh pr view "$BRANCH_NAME" --json url --jq '.url')
@@ -84,7 +113,7 @@ jobs:
               echo ""
               echo "### Diff"
               echo '```diff'
-              git diff HEAD~1 HEAD -- action.yml
+              echo "${DIFF}"
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
           else
