@@ -5,7 +5,7 @@ INPUT_JSON="$1"
 ACTION_YML="action.yml"
 NEW_YML="action.yml.new"
 
-# The schema is third-party content (octokit/openapi): keys must stay in a safe
+# The schema is third-party content (github/rest-api-description): keys must stay in a safe
 # charset and descriptions are JSON-escaped (@json) so they cannot break out of
 # the YAML double-quoted scalar.
 jq -r '.components.schemas["app-permissions"].properties | to_entries | .[] |

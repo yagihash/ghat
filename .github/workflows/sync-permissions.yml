@@ -41,7 +41,7 @@ jobs:
 
       - name: Get OpenAPI schema file
         run: |
-          curl -fsSL https://raw.githubusercontent.com/octokit/openapi/refs/heads/main/generated/api.github.com.json -o "$RUNNER_TEMP/api.github.com.json"
+          curl -fsSL https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json -o "$RUNNER_TEMP/api.github.com.json"
 
       - name: Update action.yml
         run: |
