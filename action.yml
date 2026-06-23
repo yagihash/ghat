@@ -40,9 +40,6 @@ inputs:
   permission_checks:
     description: "The level of permission to grant the access token for checks on code. (read/write)"
     required: false
-  permission_code_quality:
-    description: "The level of permission to grant the access token to view and manage code quality data. (read/write)"
-    required: false
   permission_codespaces:
     description: "The level of permission to grant the access token to create, edit, delete, and list Codespaces. (read/write)"
     required: false
@@ -128,10 +125,7 @@ inputs:
     description: "The level of permission to grant the access token for repository custom properties management at the organization level. (read/write/admin)"
     required: false
   permission_organization_copilot_seat_management:
-    description: "The level of permission to grant the access token for managing access to GitHub Copilot for members of an organization with a Copilot Business subscription. This property is in public preview and is subject to change. (read/write)"
-    required: false
-  permission_organization_copilot_agent_settings:
-    description: "The level of permission to grant the access token to view and manage Copilot cloud agent settings for an organization. (read/write)"
+    description: "The level of permission to grant the access token for managing access to GitHub Copilot for members of an organization with a Copilot Business subscription. This property is in public preview and is subject to change. (write)"
     required: false
   permission_organization_announcement_banners:
     description: "The level of permission to grant the access token to view and manage announcement banners for an organization. (read/write)"
@@ -166,6 +160,9 @@ inputs:
   permission_organization_user_blocking:
     description: "The level of permission to grant the access token to view and manage users blocked by the organization. (read/write)"
     required: false
+  permission_team_discussions:
+    description: "The level of permission to grant the access token to manage team discussions and related comments. (read/write)"
+    required: false
   permission_email_addresses:
     description: "The level of permission to grant the access token to manage the email addresses belonging to a user. (read/write)"
     required: false
@@ -197,6 +194,6 @@ outputs:
 
 runs:
   using: "docker"
-  image: "docker://ghcr.io/yagihash/ghat@sha256:c937a4808d70dfbcbc721e1732d86139be1ec443a1ded461ca5b877258db2160"
+  image: "docker://ghcr.io/yagihash/ghat@sha256:a91e068911b361476a63e232e87bd83b0d419634f33926d513510ddcfe498098"
   entrypoint: "/ghat"
   post-entrypoint: "/post"
