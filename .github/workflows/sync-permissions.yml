@@ -73,13 +73,11 @@ jobs:
               --field content="$(base64 -w0 action.yml)" \
               --jq '.sha')
 
-            TREE_SHA=$(gh api "repos/${REPO}/git/trees" \
-              --field base_tree="${BASE_TREE}" \
-              --field "tree[][path]=action.yml" \
-              --field "tree[][mode]=100644" \
-              --field "tree[][type]=blob" \
-              --field "tree[][sha]=${BLOB_SHA}" \
-              --jq '.sha')
+            TREE_SHA=$(jq -n \
+              --arg base_tree "${BASE_TREE}" \
+              --arg sha "${BLOB_SHA}" \
+              '{base_tree: $base_tree, tree: [{path: "action.yml", mode: "100644", type: "blob", sha: $sha}]}' | \
+              gh api "repos/${REPO}/git/trees" --input - --jq '.sha')
 
             COMMIT_SHA=$(jq -n \
               --arg msg "chore: sync GitHub App permissions" \
