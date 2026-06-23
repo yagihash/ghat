@@ -60,11 +60,11 @@ jobs:
           BRANCH_NAME="feature/sync-permissions-$(date +%Y%m%d)"
           REPO="${GITHUB_REPOSITORY}"
 
-          # 変更がある場合のみ PR を作成
+          # Create a PR only when action.yml has changed
           if [[ -n $(git status --porcelain action.yml) ]]; then
             DIFF=$(git diff HEAD -- action.yml)
 
-            # GitHub API 経由で signed commit を作成
+            # Create a signed commit via the GitHub API
             BASE_SHA=$(git rev-parse HEAD)
             BASE_TREE=$(gh api "repos/${REPO}/git/commits/${BASE_SHA}" --jq '.tree.sha')
 
@@ -88,7 +88,7 @@ jobs:
               '{message: $msg, tree: $tree, parents: [$parent]}' | \
               gh api "repos/${REPO}/git/commits" --input - --jq '.sha')
 
-            # ブランチを作成または更新
+            # Create or force-update the branch ref
             gh api "repos/${REPO}/git/refs" \
               --field ref="refs/heads/${BRANCH_NAME}" \
               --field sha="${COMMIT_SHA}" 2>/dev/null || \
