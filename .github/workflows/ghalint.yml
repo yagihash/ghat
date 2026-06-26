@@ -55,11 +55,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
+      # Run the two independent ghalint checks concurrently using the new
+      # parallel steps feature (background steps + wait-all).
+      # https://github.blog/changelog/2026-06-25-actions-steps-can-now-be-run-in-parallel/
       - name: Run ghalint run
         run: ./ghalint run
+        background: true
 
       - name: Run ghalint act
         run: ./ghalint act
+        background: true
+
+      - wait-all:
 
   actionlint:
     needs: changes
