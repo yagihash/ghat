@@ -4,3 +4,11 @@ paths:
   .github/workflows/**/*.yml:
     ignore:
       - 'file "/(ghat|post)" does not exist'
+  # Parallel steps (background / wait-all) are a new GitHub Actions feature that
+  # actionlint v1.7.12 does not yet recognize. Remove this entry once actionlint
+  # ships support for them.
+  # https://github.blog/changelog/2026-06-25-actions-steps-can-now-be-run-in-parallel/
+  .github/workflows/ghalint.yml:
+    ignore:
+      - 'unexpected key "background" for step'
+      - 'step must run script with "run" section or run action with "uses" section'
