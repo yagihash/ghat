@@ -15,9 +15,9 @@ type Config struct {
 	Permissions  map[string]string `envconfig:"PERMISSION"`
 	BaseURL      string            `envconfig:"BASE_URL" default:"https://api.github.com"`
 
-	ProjectID  string `envconfig:"KMS_PROJECT_ID" required:"true"`
-	KeyRingID  string `envconfig:"KMS_KEYRING_ID" required:"true"`
-	KeyID      string `envconfig:"KMS_KEY_ID" required:"true"`
+	ProjectID string `envconfig:"KMS_PROJECT_ID" required:"true"`
+	KeyRingID string `envconfig:"KMS_KEYRING_ID" required:"true"`
+	KeyID     string `envconfig:"KMS_KEY_ID" required:"true"`
 	// KeyVersion defaults to "" to signal automatic detection of the latest enabled
 	// KMS key version. GitHub Actions passes an explicit empty string for optional
 	// inputs the user leaves unset, so the zero value carries the same semantic.
@@ -61,8 +61,8 @@ func (r *Repositories) Decode(value string) error {
 
 	res := make(Repositories, 0)
 	normalized := strings.ReplaceAll(value, "\n", ",")
-	repos := strings.Split(normalized, ",")
-	for _, repo := range repos {
+	repos := strings.SplitSeq(normalized, ",")
+	for repo := range repos {
 		trimmed := strings.TrimSpace(repo)
 		if trimmed != "" {
 			res = append(res, trimmed)

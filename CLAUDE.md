@@ -13,7 +13,7 @@
 It also exposes a public Go library (`pkg/ghat`) that external Go modules can import to perform the same operations programmatically.
 
 **Module path:** `github.com/yagihash/ghat/v2`
-**Language:** Go 1.26+
+**Language:** Go 1.27+
 **License:** MIT
 
 ---
@@ -51,7 +51,7 @@ ghat/
 ├── .github/
 │   └── workflows/             # CI/CD pipelines (test, edge build, release, linting)
 ├── action.yml                 # GitHub Action metadata (inputs, outputs, Docker entrypoint)
-├── Dockerfile                 # Multi-stage build: golang:1.26-alpine → alpine:3.23.3
+├── Dockerfile                 # Multi-stage build: golang:1.27-alpine → alpine:3.23.3
 ├── mise.toml                  # Tool versions (Go) and task runner (build, test, coverage)
 ├── go.mod / go.sum
 ├── renovate.json
@@ -64,7 +64,7 @@ ghat/
 
 ### Prerequisites
 
-- [mise](https://mise.jdx.dev/) (`mise install` to activate Go 1.26.1)
+- [mise](https://mise.jdx.dev/) (`mise install` to activate Go 1.27.0)
 - Docker (for building the container image)
 
 ### Common Tasks
@@ -88,7 +88,7 @@ docker build -t ghat .
 ```
 
 The Dockerfile uses a two-stage build:
-1. `golang:1.26-alpine` — compiles both binaries with `CGO_ENABLED=0` and compresses with `upx`
+1. `golang:1.27-alpine` — compiles both binaries with `CGO_ENABLED=0` and compresses with `upx`
 2. `alpine:3.23.3` — minimal runtime image
 
 ---
