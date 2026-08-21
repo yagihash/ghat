@@ -57,8 +57,8 @@ func (w *kmsClientWrapper) LatestEnabledKeyVersion(ctx context.Context, parent s
 		if err != nil {
 			return "", fmt.Errorf("failed to list crypto key versions: %w", err)
 		}
-		parts := strings.Split(v.Name, "/")
-		n, err := strconv.ParseInt(parts[len(parts)-1], 10, 64)
+		_, last, _ := strings.CutLast(v.Name, "/")
+		n, err := strconv.ParseInt(last, 10, 64)
 		if err != nil {
 			continue
 		}

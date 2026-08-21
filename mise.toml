@@ -1,5 +1,5 @@
 [tools]
-go = "1.26.3"
+go = "1.27.0"
 
 [tasks.build]
 description = "Build both binaries to dist/"
