@@ -2,6 +2,7 @@ package actions
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 )
@@ -66,11 +67,12 @@ func GetState(key string) (string, error) {
 }
 
 func LogGroup(title string, messages ...string) {
-	fmt.Println("::group::" + title)
+	w := logWriter()
+	fmt.Fprintln(w, "::group::"+title)
 	for _, v := range messages {
-		fmt.Println(v)
+		fmt.Fprintln(w, v)
 	}
-	fmt.Println("::endgroup::")
+	fmt.Fprintln(w, "::endgroup::")
 }
 
 func LogDebug(value string) {
@@ -94,15 +96,33 @@ func AddMask(value string) {
 }
 
 func workflowCommand(command string, value string, params map[string]string) {
-	if params == nil || len(params) == 0 {
-		fmt.Printf("::%s::%s\n", command, value)
+	w := logWriter()
+	if len(params) == 0 {
+		fmt.Fprintf(w, "::%s::%s\n", command, value)
 	} else {
 		p := make([]string, 0, len(params))
 		for k, v := range params {
 			p = append(p, fmt.Sprintf("%s=%s", k, v))
 		}
-		fmt.Printf("::%s %s::%s\n", command, strings.Join(p, ","), value)
+		fmt.Fprintf(w, "::%s %s::%s\n", command, strings.Join(p, ","), value)
 	}
+}
+
+// isGitHubActions reports whether the process is running as a GitHub Actions
+// step. Workflow commands (::notice::, ::warning::, etc.) are only parsed by
+// the runner when written to stdout, so that stream is reserved for them
+// there; outside Actions (plain CLI usage) nothing parses these lines and
+// stdout is reserved for the actual command output (e.g. the issued token),
+// so logs go to stderr instead.
+func isGitHubActions() bool {
+	return os.Getenv("GITHUB_ACTIONS") == "true"
+}
+
+func logWriter() io.Writer {
+	if isGitHubActions() {
+		return os.Stdout
+	}
+	return os.Stderr
 }
 
 func normalizeToEnvKey(key string) string {

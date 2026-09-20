@@ -234,7 +234,26 @@ func captureStdout(t *testing.T, f func()) string {
 	return string(out)
 }
 
+func captureStderr(t *testing.T, f func()) string {
+	t.Helper()
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	orig := os.Stderr
+	os.Stderr = w
+	f()
+	w.Close()
+	os.Stderr = orig
+	out, err := io.ReadAll(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(out)
+}
+
 func TestLogDebug(t *testing.T) {
+	t.Setenv("GITHUB_ACTIONS", "true")
 	out := captureStdout(t, func() { LogDebug("debug message") })
 	if want := "::debug::debug message\n"; out != want {
 		t.Errorf("output = %q, want %q", out, want)
@@ -242,6 +261,7 @@ func TestLogDebug(t *testing.T) {
 }
 
 func TestLogNotice(t *testing.T) {
+	t.Setenv("GITHUB_ACTIONS", "true")
 	out := captureStdout(t, func() { LogNotice("notice message") })
 	if want := "::notice::notice message\n"; out != want {
 		t.Errorf("output = %q, want %q", out, want)
@@ -249,6 +269,7 @@ func TestLogNotice(t *testing.T) {
 }
 
 func TestLogWarning(t *testing.T) {
+	t.Setenv("GITHUB_ACTIONS", "true")
 	out := captureStdout(t, func() { LogWarning("warning message") })
 	if want := "::warning::warning message\n"; out != want {
 		t.Errorf("output = %q, want %q", out, want)
@@ -256,6 +277,7 @@ func TestLogWarning(t *testing.T) {
 }
 
 func TestLogError(t *testing.T) {
+	t.Setenv("GITHUB_ACTIONS", "true")
 	out := captureStdout(t, func() { LogError("error message") })
 	if want := "::error::error message\n"; out != want {
 		t.Errorf("output = %q, want %q", out, want)
@@ -263,6 +285,7 @@ func TestLogError(t *testing.T) {
 }
 
 func TestAddMask(t *testing.T) {
+	t.Setenv("GITHUB_ACTIONS", "true")
 	out := captureStdout(t, func() { AddMask("secret-token") })
 	if want := "::add-mask::secret-token\n"; out != want {
 		t.Errorf("output = %q, want %q", out, want)
@@ -270,6 +293,7 @@ func TestAddMask(t *testing.T) {
 }
 
 func TestLogGroup(t *testing.T) {
+	t.Setenv("GITHUB_ACTIONS", "true")
 	out := captureStdout(t, func() { LogGroup("my group", "line1", "line2") })
 	want := "::group::my group\nline1\nline2\n::endgroup::\n"
 	if out != want {
@@ -278,6 +302,7 @@ func TestLogGroup(t *testing.T) {
 }
 
 func TestWorkflowCommand_WithParams(t *testing.T) {
+	t.Setenv("GITHUB_ACTIONS", "true")
 	out := captureStdout(t, func() {
 		workflowCommand("error", "something went wrong", map[string]string{"file": "main.go", "line": "42"})
 	})
@@ -289,5 +314,29 @@ func TestWorkflowCommand_WithParams(t *testing.T) {
 	}
 	if !strings.Contains(out, "file=main.go") || !strings.Contains(out, "line=42") {
 		t.Errorf("output should contain params, got %q", out)
+	}
+}
+
+func TestLogNotice_NonActionsWritesToStderr(t *testing.T) {
+	t.Setenv("GITHUB_ACTIONS", "false")
+
+	stdout := captureStdout(t, func() {
+		stderr := captureStderr(t, func() { LogNotice("notice message") })
+		if want := "::notice::notice message\n"; stderr != want {
+			t.Errorf("stderr = %q, want %q", stderr, want)
+		}
+	})
+	if stdout != "" {
+		t.Errorf("stdout = %q, want empty (should not mix with command output)", stdout)
+	}
+}
+
+func TestLogGroup_NonActionsWritesToStderr(t *testing.T) {
+	t.Setenv("GITHUB_ACTIONS", "false")
+
+	stderr := captureStderr(t, func() { LogGroup("my group", "line1") })
+	want := "::group::my group\nline1\n::endgroup::\n"
+	if stderr != want {
+		t.Errorf("stderr = %q, want %q", stderr, want)
 	}
 }
