@@ -3,17 +3,19 @@ package input
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/kelseyhightower/envconfig"
 )
 
 type Config struct {
-	AppID        string            `envconfig:"APP_ID" required:"true"`
-	Owner        string            `envconfig:"OWNER"`
-	Repositories Repositories      `envconfig:"REPOSITORIES"`
-	Permissions  map[string]string `envconfig:"PERMISSION"`
-	BaseURL      string            `envconfig:"BASE_URL" default:"https://api.github.com"`
+	AppID            string            `envconfig:"APP_ID" required:"true"`
+	Owner            string            `envconfig:"OWNER"`
+	Repositories     Repositories      `envconfig:"REPOSITORIES"`
+	PermissionInputs Permissions       `envconfig:"PERMISSION"`
+	Permissions      map[string]string `ignored:"true"`
+	BaseURL          string            `envconfig:"BASE_URL" default:"https://api.github.com"`
 
 	ProjectID string `envconfig:"KMS_PROJECT_ID" required:"true"`
 	KeyRingID string `envconfig:"KMS_KEYRING_ID" required:"true"`
@@ -41,15 +43,32 @@ func Load() (*Config, error) {
 		c.Owner = os.Getenv("GITHUB_REPOSITORY_OWNER")
 	}
 
-	if len(c.Permissions) > 0 {
-		lowered := make(map[string]string, len(c.Permissions))
-		for k, v := range c.Permissions {
-			lowered[strings.ToLower(k)] = v
-		}
-		c.Permissions = lowered
-	}
+	c.Permissions = c.PermissionInputs.toMap()
 
 	return &c, nil
+}
+
+// toMap flattens the envconfig-bound per-resource fields into the
+// map[string]string shape the GitHub API expects, keyed by each field's perm
+// tag (its exact API resource name). Fields envconfig left unset stay "" and
+// are excluded.
+func (p Permissions) toMap() map[string]string {
+	v := reflect.ValueOf(p)
+
+	permissions := make(map[string]string, v.NumField())
+	for f := range reflect.TypeFor[Permissions]().Fields() {
+		value := v.FieldByName(f.Name).String()
+		if value == "" {
+			continue
+		}
+		permissions[f.Tag.Get("perm")] = value
+	}
+
+	if len(permissions) == 0 {
+		return nil
+	}
+
+	return permissions
 }
 
 type Repositories []string

@@ -24,6 +24,10 @@ jobs:
         with:
           persist-credentials: false
 
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version: '1.27'
+
       - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
@@ -38,6 +42,8 @@ jobs:
           kms_keyring_id: ${{ secrets.KMS_KEYRING_ID }}
           kms_location: ${{ vars.KMS_LOCATION }}
           kms_project_id: ${{ vars.KMS_PROJECT_ID }}
+          permission_contents: write
+          permission_pull_requests: write
 
       - name: Get OpenAPI schema file
         run: |
@@ -46,6 +52,10 @@ jobs:
       - name: Update action.yml
         run: |
           ./scripts/update-permissions.sh "$RUNNER_TEMP/api.github.com.json"
+
+      - name: Update internal/input/permissions_gen.go
+        run: |
+          ./scripts/generate-permissions.sh "$RUNNER_TEMP/api.github.com.json"
 
       - name: Setup git
         env:
@@ -59,24 +69,34 @@ jobs:
         run: |
           BRANCH_NAME="feature/sync-permissions-$(date +%Y%m%d)"
           REPO="${GITHUB_REPOSITORY}"
+          FILES=("action.yml" "internal/input/permissions_gen.go")
 
-          # Create a PR only when action.yml has changed
-          if [[ -n $(git status --porcelain action.yml) ]]; then
-            DIFF=$(git diff HEAD -- action.yml)
+          # Create a PR only when a generated file has changed
+          if [[ -n $(git status --porcelain "${FILES[@]}") ]]; then
+            DIFF=$(git diff HEAD -- "${FILES[@]}")
 
             # Create a signed commit via the GitHub API
             BASE_SHA=$(git rev-parse HEAD)
             BASE_TREE=$(gh api "repos/${REPO}/git/commits/${BASE_SHA}" --jq '.tree.sha')
 
-            BLOB_SHA=$(gh api "repos/${REPO}/git/blobs" \
-              --field encoding=base64 \
-              --field content="$(base64 -w0 action.yml)" \
-              --jq '.sha')
+            TREE_ENTRIES="[]"
+            for FILE in "${FILES[@]}"; do
+              BLOB_SHA=$(gh api "repos/${REPO}/git/blobs" \
+                --field encoding=base64 \
+                --field content="$(base64 -w0 "${FILE}")" \
+                --jq '.sha')
+
+              TREE_ENTRIES=$(jq -n \
+                --argjson entries "${TREE_ENTRIES}" \
+                --arg path "${FILE}" \
+                --arg sha "${BLOB_SHA}" \
+                '$entries + [{path: $path, mode: "100644", type: "blob", sha: $sha}]')
+            done
 
             TREE_SHA=$(jq -n \
               --arg base_tree "${BASE_TREE}" \
-              --arg sha "${BLOB_SHA}" \
-              '{base_tree: $base_tree, tree: [{path: "action.yml", mode: "100644", type: "blob", sha: $sha}]}' | \
+              --argjson tree "${TREE_ENTRIES}" \
+              '{base_tree: $base_tree, tree: $tree}' | \
               gh api "repos/${REPO}/git/trees" --input - --jq '.sha')
 
             COMMIT_SHA=$(jq -n \
@@ -97,7 +117,7 @@ jobs:
 
             PR_URL=$(gh pr create \
               --title "🤖 Sync GitHub App Permissions" \
-              --body "This PR updates \`action.yml\` inputs and args based on the latest GitHub App permissions from github/rest-api-description." \
+              --body "This PR updates \`action.yml\` inputs and \`internal/input/permissions_gen.go\` based on the latest GitHub App permissions from github/rest-api-description." \
               --base main \
               --head "$BRANCH_NAME" \
               --reviewer yagihash 2>&1 || gh pr view "$BRANCH_NAME" --json url --jq '.url')
@@ -115,11 +135,11 @@ jobs:
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "No changes detected in action.yml"
+            echo "No changes detected"
 
             {
               echo "## Sync GitHub App Permissions"
               echo ""
-              echo "☑️ **No changes detected.** \`action.yml\` is already up to date."
+              echo "☑️ **No changes detected.** \`action.yml\` and \`internal/input/permissions_gen.go\` are already up to date."
             } >> "$GITHUB_STEP_SUMMARY"
           fi
