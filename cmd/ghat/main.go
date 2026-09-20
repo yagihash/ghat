@@ -101,11 +101,13 @@ func realMain() int {
 		actions.LogNotice("Token hash: " + base64.StdEncoding.EncodeToString(hash[:]))
 
 		if err := actions.SetState("token", accessToken.Token); err != nil {
+			revokeOnFailure(args.BaseURL, accessToken.Token)
 			actions.LogError(err.Error())
 			return exitErr
 		}
 
 		if err := actions.SetOutput("token", accessToken.Token); err != nil {
+			revokeOnFailure(args.BaseURL, accessToken.Token)
 			actions.LogError(err.Error())
 			return exitErr
 		}
@@ -114,4 +116,14 @@ func realMain() int {
 	}
 
 	return exitOK
+}
+
+// revokeOnFailure best-effort revokes an already-issued installation access
+// token when a subsequent step fails, so the token doesn't outlive the
+// workflow run just because the post step never learns about it (e.g. when
+// SetState itself failed).
+func revokeOnFailure(baseURL, token string) {
+	if err := client.New(baseURL, token).DeleteInstallationAccessToken(); err != nil {
+		actions.LogWarning("failed to revoke token after setup failure: " + err.Error())
+	}
 }

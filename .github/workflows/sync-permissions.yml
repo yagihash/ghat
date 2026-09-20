@@ -38,6 +38,8 @@ jobs:
           kms_keyring_id: ${{ secrets.KMS_KEYRING_ID }}
           kms_location: ${{ vars.KMS_LOCATION }}
           kms_project_id: ${{ vars.KMS_PROJECT_ID }}
+          permission_contents: write
+          permission_pull_requests: write
 
       - name: Get OpenAPI schema file
         run: |
