@@ -1,6 +1,7 @@
 package input
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -85,6 +86,41 @@ func TestLoad_Permissions(t *testing.T) {
 			t.Errorf("Permissions = %#v, want nil", i.Permissions)
 		}
 	})
+}
+
+// TestLoad_AllPermissionFields verifies every generated Permissions field
+// (internal/input/permissions_gen.go) is bound by envconfig to the env var its
+// envconfig tag names, and surfaces in Config.Permissions under its perm tag's
+// key. This guards against a mis-generated tag silently dropping a resource
+// from the token scope.
+func TestLoad_AllPermissionFields(t *testing.T) {
+	t.Setenv("INPUT_APP_ID", "12345")
+	t.Setenv("INPUT_OWNER", "owner")
+	t.Setenv("INPUT_KMS_PROJECT_ID", "project-id")
+	t.Setenv("INPUT_KMS_KEYRING_ID", "keyring-id")
+	t.Setenv("INPUT_KMS_KEY_ID", "key-id")
+	t.Setenv("INPUT_KMS_LOCATION", "us-central1")
+
+	fields := reflect.TypeFor[Permissions]()
+	want := make(map[string]string, fields.NumField())
+	for f := range fields.Fields() {
+		key := f.Tag.Get("perm")
+		if key == "" {
+			t.Fatalf("field %s has no perm tag", f.Name)
+		}
+		envName := "INPUT_PERMISSION_" + f.Tag.Get("envconfig")
+		t.Setenv(envName, "write")
+		want[key] = "write"
+	}
+
+	i, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if diff := cmp.Diff(want, i.Permissions); diff != "" {
+		t.Errorf("Permissions mismatch (-want +got):\n%s", diff)
+	}
 }
 
 func TestLoad_DefaultKeyVersion(t *testing.T) {

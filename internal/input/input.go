@@ -3,17 +3,19 @@ package input
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/kelseyhightower/envconfig"
 )
 
 type Config struct {
-	AppID        string            `envconfig:"APP_ID" required:"true"`
-	Owner        string            `envconfig:"OWNER"`
-	Repositories Repositories      `envconfig:"REPOSITORIES"`
-	Permissions  map[string]string `envconfig:"PERMISSION"`
-	BaseURL      string            `envconfig:"BASE_URL" default:"https://api.github.com"`
+	AppID            string            `envconfig:"APP_ID" required:"true"`
+	Owner            string            `envconfig:"OWNER"`
+	Repositories     Repositories      `envconfig:"REPOSITORIES"`
+	PermissionInputs Permissions       `envconfig:"PERMISSION"`
+	Permissions      map[string]string `ignored:"true"`
+	BaseURL          string            `envconfig:"BASE_URL" default:"https://api.github.com"`
 
 	ProjectID string `envconfig:"KMS_PROJECT_ID" required:"true"`
 	KeyRingID string `envconfig:"KMS_KEYRING_ID" required:"true"`
@@ -41,31 +43,25 @@ func Load() (*Config, error) {
 		c.Owner = os.Getenv("GITHUB_REPOSITORY_OWNER")
 	}
 
-	c.Permissions = loadPermissions(c.Permissions)
+	c.Permissions = c.PermissionInputs.toMap()
 
 	return &c, nil
 }
 
-const permissionEnvPrefix = "INPUT_PERMISSION_"
+// toMap flattens the envconfig-bound per-resource fields into the
+// map[string]string shape the GitHub API expects, keyed by each field's perm
+// tag (its exact API resource name). Fields envconfig left unset stay "" and
+// are excluded.
+func (p Permissions) toMap() map[string]string {
+	v := reflect.ValueOf(p)
 
-// loadPermissions merges the aggregate INPUT_PERMISSION map (if any) with the
-// ~60 individual INPUT_PERMISSION_<NAME> variables that action.yml's
-// permission_<resource> inputs actually produce. envconfig only binds the
-// single aggregate variable, so the per-resource inputs must be collected
-// manually here.
-func loadPermissions(aggregate map[string]string) map[string]string {
-	permissions := make(map[string]string, len(aggregate))
-	for k, v := range aggregate {
-		permissions[strings.ToLower(k)] = v
-	}
-
-	for _, kv := range os.Environ() {
-		key, value, ok := strings.Cut(kv, "=")
-		if !ok || !strings.HasPrefix(key, permissionEnvPrefix) || value == "" {
+	permissions := make(map[string]string, v.NumField())
+	for f := range reflect.TypeFor[Permissions]().Fields() {
+		value := v.FieldByName(f.Name).String()
+		if value == "" {
 			continue
 		}
-		name := strings.ToLower(strings.TrimPrefix(key, permissionEnvPrefix))
-		permissions[name] = value
+		permissions[f.Tag.Get("perm")] = value
 	}
 
 	if len(permissions) == 0 {
