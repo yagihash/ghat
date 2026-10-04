@@ -133,6 +133,9 @@ inputs:
   permission_organization_copilot_agent_settings:
     description: "The level of permission to grant the access token to view and manage Copilot cloud agent settings for an organization. (read/write)"
     required: false
+  permission_organization_external_properties_for_repos:
+    description: "The level of permission to grant the access token for managing external custom properties for repositories in an organization. (read/write/admin)"
+    required: false
   permission_organization_announcement_banners:
     description: "The level of permission to grant the access token to view and manage announcement banners for an organization. (read/write)"
     required: false
