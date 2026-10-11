@@ -44,6 +44,7 @@ type Permissions struct {
 	OrganizationCustomProperties               string `envconfig:"ORGANIZATION_CUSTOM_PROPERTIES" perm:"organization_custom_properties"`
 	OrganizationCopilotSeatManagement          string `envconfig:"ORGANIZATION_COPILOT_SEAT_MANAGEMENT" perm:"organization_copilot_seat_management"`
 	OrganizationCopilotAgentSettings           string `envconfig:"ORGANIZATION_COPILOT_AGENT_SETTINGS" perm:"organization_copilot_agent_settings"`
+	OrganizationExternalPropertiesForRepos     string `envconfig:"ORGANIZATION_EXTERNAL_PROPERTIES_FOR_REPOS" perm:"organization_external_properties_for_repos"`
 	OrganizationAnnouncementBanners            string `envconfig:"ORGANIZATION_ANNOUNCEMENT_BANNERS" perm:"organization_announcement_banners"`
 	OrganizationEvents                         string `envconfig:"ORGANIZATION_EVENTS" perm:"organization_events"`
 	OrganizationHooks                          string `envconfig:"ORGANIZATION_HOOKS" perm:"organization_hooks"`
