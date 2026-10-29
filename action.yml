@@ -133,12 +133,6 @@ inputs:
   permission_organization_copilot_agent_settings:
     description: "The level of permission to grant the access token to view and manage Copilot cloud agent settings for an organization. (read/write)"
     required: false
-  permission_organization_copilot_requests:
-    description: "The level of permission to grant the access token to make Copilot requests billed to the organization where the app is installed. This property is in public preview and is subject to change. (read)"
-    required: false
-  permission_organization_external_properties_for_repos:
-    description: "The level of permission to grant the access token for managing external custom properties for repositories in an organization. (read/write/admin)"
-    required: false
   permission_organization_announcement_banners:
     description: "The level of permission to grant the access token to view and manage announcement banners for an organization. (read/write)"
     required: false
@@ -203,6 +197,6 @@ outputs:
 
 runs:
   using: "docker"
-  image: "docker://ghcr.io/yagihash/ghat@sha256:5728d25fd5b8356fbe77d3e480f797cc19c4453afba48773bbcd2c4d01ad07fa"
+  image: "docker://ghcr.io/yagihash/ghat@sha256:ad6960f8b6cffcff8f125a033b06ef617fb3de76f86a6d50af63f6cfa7d5d60b"
   entrypoint: "/ghat"
   post-entrypoint: "/post"
