@@ -61,13 +61,14 @@ jobs:
           EXPECTED_TAG="$REGISTRY/$REPOSITORY:$BRANCH_TAG"
           echo "Expecting image: $EXPECTED_TAG"
 
-          MANIFEST=$(docker manifest inspect --verbose "$EXPECTED_TAG" 2>/dev/null || true)
-          if [ -z "$MANIFEST" ]; then
+          # imagetools returns the digest of the top-level manifest (index) even
+          # when the image also carries attestation manifests
+          MANIFEST_DIGEST=$(docker buildx imagetools inspect "$EXPECTED_TAG" --format '{{.Manifest.Digest}}' 2>/dev/null || true)
+          if [ -z "$MANIFEST_DIGEST" ]; then
             echo "Image $EXPECTED_TAG not found. The build workflow may not have run yet."
             exit 1
           fi
 
-          MANIFEST_DIGEST=$(echo "$MANIFEST" | jq -r '.Descriptor.digest')
           EXPECTED_DIGEST="$REGISTRY/$REPOSITORY@$MANIFEST_DIGEST"
           ACTUAL_DIGEST=$(grep -oP 'ghcr\.io/[^ "]+' action.yml | head -1)
 
