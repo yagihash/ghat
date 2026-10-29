@@ -67,7 +67,8 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
         run: |
-          BRANCH_NAME="feature/sync-permissions-$(date +%Y%m%d)"
+          # Use a fixed branch name so that unmerged PRs are not duplicated
+          BRANCH_NAME="feature/sync-permissions"
           REPO="${GITHUB_REPOSITORY}"
           FILES=("action.yml" "internal/input/permissions_gen.go")
 
@@ -118,6 +119,7 @@ jobs:
             PR_URL=$(gh pr create \
               --title "🤖 Sync GitHub App Permissions" \
               --body "This PR updates \`action.yml\` inputs and \`internal/input/permissions_gen.go\` based on the latest GitHub App permissions from github/rest-api-description." \
+              --label minor \
               --base main \
               --head "$BRANCH_NAME" \
               --reviewer yagihash 2>&1 || gh pr view "$BRANCH_NAME" --json url --jq '.url')
