@@ -67,7 +67,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
         run: |
-          # 固定のブランチ名にして、未マージの PR が残っていても重複して作られないようにする
+          # Use a fixed branch name so that unmerged PRs are not duplicated
           BRANCH_NAME="feature/sync-permissions"
           REPO="${GITHUB_REPOSITORY}"
           FILES=("action.yml" "internal/input/permissions_gen.go")
