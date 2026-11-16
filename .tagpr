@@ -2,5 +2,5 @@
 	releaseBranch = main
 	vPrefix = true
 	release = false
-	changelog = false
+	changelog = true
 	versionFile = -
