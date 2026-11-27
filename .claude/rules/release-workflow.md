@@ -13,7 +13,7 @@ paths:
 [main] PR がマージされる
   → tagpr が tagpr-from-v* ブランチを force-push で作成・更新
   → [tagpr-from-v*] build-release.yml が Docker image をビルドして action.yml の digest を更新・コミット
-  → [PR: tagpr-from-v* → main] verify-release-image.yml が action.yml の digest を検証
+  → [PR: tagpr-from-v* → main] ci.yml の `verify` ジョブが action.yml の digest を検証
   → PR をマージ
   → [main] tagpr がマージコミットに vX.Y.Z タグを打つ
   → [tag: vX.Y.Z] release.yml が GitHub Release を作成
@@ -24,7 +24,6 @@ paths:
 | ファイル | トリガー | 役割 |
 |---------|---------|------|
 | `build-release.yml` | `tagpr-from-*` へのプッシュ | Docker image をビルドし、digest を action.yml に書き込む |
-| `verify-release-image.yml` | main への pull_request | action.yml の digest と実際のイメージが一致するか検証 |
 | `release.yml` | タグ `v*.*.*` のプッシュ | GitHub Release の作成、メジャーバージョンタグのプッシュ |
 
 ## build-release の無限ループ防止
@@ -63,10 +62,10 @@ Ruleset "Protect main" で以下のジョブが Required checks として設定�
 
 | コンテキスト名 | ワークフロー | 役割 |
 |--------------|------------|------|
-| `test` | `test.yml` | Go ユニットテスト・ビルド確認 |
-| `actionlint` | `ghalint.yml` | GitHub Actions ワークフローの静的解析 |
-| `ghalint` | `ghalint.yml` | GitHub Actions セキュリティ lint |
-| `verify` | `verify-release-image.yml` | action.yml の Docker image digest 検証 |
+| `test` | `ci.yml` | Go ユニットテスト・ビルド確認 |
+| `actionlint` | `ci.yml` | GitHub Actions ワークフローの静的解析 |
+| `ghalint` | `ci.yml` | GitHub Actions セキュリティ lint |
+| `verify` | `ci.yml` | action.yml の Docker image digest 検証 |
 
 ### paths フィルタの注意事項
 
