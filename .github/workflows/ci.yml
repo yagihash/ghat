@@ -32,9 +32,19 @@ jobs:
         with:
           token: ${{ github.token }}
           filters: |
+            # ghalint / actionlint の検査対象（と、その設定）だけを見る。.github/ 配下でも CODEOWNERS や release.yml などでは走らせない。
             workflows:
-              - '.github/**'
-              - 'action.yml'
+              - '.github/workflows/**'
+              - '**/action.yml'
+              - '**/action.yaml'
+              - '.github/actionlint.yaml'
+              - '.github/actionlint.yml'
+              - '.ghalint.yaml'
+              - '.ghalint.yml'
+              - 'ghalint.yaml'
+              - 'ghalint.yml'
+              - '.github/ghalint.yaml'
+              - '.github/ghalint.yml'
             go:
               - '**/*.go'
               - 'go.mod'
