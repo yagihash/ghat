@@ -239,11 +239,10 @@ All workflows live in `.github/workflows/`.
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| `test.yml` | PR, push to `main` | Runs unit tests (`go test -v -cover -race ./...`) |
+| `ci.yml` | PR, push to `main` | Runs `ghalint` / `actionlint` / `test` (`go test -v -cover -race ./...`) / `verify` (action.yml image digest), aggregated by the `ci-ok` job |
 | `push-edge.yml` | Push to `main`, workflow dispatch | Builds and pushes `edge` Docker image; runs integration test |
 | `release.yml` | Git tag `v*.*.*` | Builds versioned Docker image, updates `action.yml` digest, force-pushes tags |
-| `ghalint.yml` | PR, push | Lints GitHub Actions workflow files |
-| `pinact.yml` | PR, push | Validates action references are pinned to commit SHAs |
+| `pinact.yml` | Release published, workflow dispatch | Pins action references in README.md to the latest version and pushes to `main` |
 | `sync-permissions.yml` | PR, push | Ensures `action.yml` permission inputs stay in sync |
 
 **Required secrets/variables for workflows:**
