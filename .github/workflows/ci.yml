@@ -32,13 +32,13 @@ jobs:
         with:
           token: ${{ github.token }}
           filters: |
-            # ghalint / actionlint の検査対象（と、その設定）だけを見る。.github/ 配下でも CODEOWNERS や release.yml などでは走らせない。
+            # ghalint / jactionlint の検査対象（と、その設定）だけを見る。.github/ 配下でも CODEOWNERS や release.yml などでは走らせない。
             workflows:
               - '.github/workflows/**'
               - '**/action.yml'
               - '**/action.yaml'
-              - '.github/actionlint.yaml'
-              - '.github/actionlint.yml'
+              - '.github/jactionlint.yaml'
+              - '.github/jactionlint.yml'
               - '.ghalint.yaml'
               - '.ghalint.yml'
               - 'ghalint.yaml'
@@ -52,7 +52,7 @@ jobs:
               - 'Dockerfile'
               - 'mise.toml'
 
-  ghalint:
+  check-actions-security:
     needs: changes
     if: needs.changes.outputs.workflows == 'true'
     runs-on: ubuntu-latest
@@ -68,62 +68,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install ghalint
-        run: |
-          # renovate: datasource=github-releases depName=suzuki-shunsuke/ghalint
-          version=v1.6.0
-          gh release download -R suzuki-shunsuke/ghalint "${version}" -p "ghalint_${version#v}_linux_amd64.tar.gz"
-          gh attestation verify "ghalint_${version#v}_linux_amd64.tar.gz" \
-            -R suzuki-shunsuke/ghalint \
-            --signer-workflow suzuki-shunsuke/go-release-workflow/.github/workflows/release.yaml
-          tar xzf "ghalint_${version#v}_linux_amd64.tar.gz" ghalint
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-      # Run the two independent ghalint checks concurrently using the new
-      # parallel steps feature (background steps + wait-all).
-      # https://github.blog/changelog/2026-06-25-actions-steps-can-now-be-run-in-parallel/
-      - name: Run ghalint run
-        run: ./ghalint run
-        background: true
-
-      - name: Run ghalint act
-        run: ./ghalint act
-        background: true
-
-      - wait-all:
-
-  actionlint:
-    needs: changes
-    if: needs.changes.outputs.workflows == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-      attestations: read
-
-    steps:
-      - uses: cicd-sensor/cicd-sensor-action@2bc31a18949a77cd5f5bd452f24f00fbb507cdf6 # v0.0.41
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Install actionlint
-        run: |
-          # renovate: datasource=github-releases depName=rhysd/actionlint
-          version=v1.7.12
-          gh release download -R rhysd/actionlint "${version}" -p "actionlint_${version#v}_linux_amd64.tar.gz"
-          gh attestation verify "actionlint_${version#v}_linux_amd64.tar.gz" --repo rhysd/actionlint
-          tar xzf "actionlint_${version#v}_linux_amd64.tar.gz" actionlint
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-      - name: Run actionlint
-        run: |
-          ./actionlint \
-            -ignore 'unexpected key "background"' \
-            -ignore 'step must run script with "run" section or run action with "uses" section'
+      - uses: yagihash/actions/check-actions-security@9f208d1c7c8bdccc9fb897307a18b15375ee5000 # v0.2.0
 
   test:
     needs: changes
@@ -229,7 +174,7 @@ jobs:
   # when they passed or were skipped (no workflow changed). A job added above has to be added here.
   ci-ok:
     if: always()
-    needs: [changes, ghalint, actionlint, test, verify]
+    needs: [changes, check-actions-security, test, verify]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
