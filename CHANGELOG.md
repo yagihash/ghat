@@ -1,5 +1,7 @@
 # Changelog
 
+## [v2.5.2](https://github.com/yagihash/ghat/compare/v2.5.1...v2.5.2) - 2026-11-28
+
 ## [v2.5.1](https://github.com/yagihash/ghat/compare/v2.5.0...v2.5.1) - 2026-11-16
 
 ## [v2.5.0](https://github.com/yagihash/ghat/compare/v2.4.0...v2.5.0) - 2026-10-29
