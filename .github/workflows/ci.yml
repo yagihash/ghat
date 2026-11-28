@@ -238,4 +238,6 @@ jobs:
         with:
           needs: ${{ toJSON(needs) }}
           filter-job: changes
-          filter-outputs: workflows go
+          filter-outputs: |
+            workflows
+            go
