@@ -1,65 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
-    ":dependencyDashboard",
-    ":semanticCommits",
-    ":timezone(Asia/Tokyo)",
-    "helpers:pinGitHubActionDigestsToSemver",
-    "mergeConfidence:all-badges"
+    "github>yagihash/renovate-config"
   ],
-  "labels": [
-    "dependencies"
-  ],
-  "reviewers": [
-    "yagihash"
-  ],
-  "schedule": [
-    "after 8pm on friday"
-  ],
-  "prHourlyLimit": 0,
-  "automerge": true,
-  "automergeType": "pr",
-  "platformAutomerge": true,
-  "rangeStrategy": "pin",
-  "minimumReleaseAge": "3 days",
-  "internalChecksFilter": "strict",
-  "prCreation": "not-pending",
-  "osvVulnerabilityAlerts": true,
-  "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": [
-      "after 8pm on friday"
-    ]
-  },
   "packageRules": [
-    {
-      "description": "Never automerge major updates",
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "automerge": false
-    },
-    {
-      "description": "Pin GitHub Actions to commit SHA for security",
-      "matchManagers": [
-        "github-actions"
-      ],
-      "pinDigests": true
-    },
-    {
-      "description": "Group and automerge GitHub Actions digest/minor/patch updates",
-      "groupName": "GitHub Actions",
-      "matchManagers": [
-        "github-actions"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch",
-        "digest"
-      ],
-      "automerge": true
-    },
     {
       "description": "Group Google Cloud SDK updates together",
       "groupName": "Google Cloud SDK",
@@ -103,36 +47,6 @@
       "matchPackageNames": [
         "google.golang.org{/,}**"
       ]
-    },
-    {
-      "description": "Automerge Go module minor/patch updates",
-      "matchManagers": [
-        "gomod"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "automerge": true
     }
-  ],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "description": "Update ghalint and actionlint versions in ghalint workflow",
-      "fileMatch": ["^\\.github/workflows/ghalint\\.yml$"],
-      "matchStrings": ["# renovate: datasource=(?<datasource>[^\\s]+) depName=(?<depName>[^\\s]+)\\s+version=v?(?<currentValue>[^\\s]+)"],
-      "versioningTemplate": "semver"
-    }
-  ],
-  "vulnerabilityAlerts": {
-    "labels": [
-      "security"
-    ],
-    "automerge": true,
-    "minimumReleaseAge": null,
-    "schedule": [
-      "at any time"
-    ]
-  }
+  ]
 }
