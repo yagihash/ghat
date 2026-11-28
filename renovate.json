@@ -47,17 +47,6 @@
       "matchPackageNames": [
         "google.golang.org{/,}**"
       ]
-    },
-    {
-      "description": "Automerge Go module minor/patch updates",
-      "matchManagers": [
-        "gomod"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "automerge": true
     }
   ]
 }
